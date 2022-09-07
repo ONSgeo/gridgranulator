@@ -1,5 +1,5 @@
-'''Unit tests for utils.py
-'''
+"""Unit tests for utils.py
+"""
 
 from pathlib import Path
 import pytest
@@ -11,7 +11,7 @@ import gridgran
 import tests
 
 BASE = Path(__file__).resolve().parent.joinpath('data')
-gpkg = BASE.joinpath('GRID_1km_SUBSET.gpkg')
+gpkg = BASE.joinpath('GRID_1km_SUBSET.gpkg') #Test data
 
 CLASSIFICATION_DICT = {
     'p_1': 10,
@@ -34,18 +34,21 @@ CLASSIFICATION_DICT_NO_CLS_2 = {
 
 @pytest.fixture
 def gdf():
+    """Fixture to make 125m grids"""
     gdf = gridgran.make_df(gpkg, '125m', 'grid')
     yield gdf
 
 
 @pytest.fixture()
 def gdf_pt():
+    """Fixture to make points"""
     gdf = gridgran.make_df(gpkg, 'points', 'point')
     yield gdf
 
 
 @pytest.fixture()
 def gdf_125_pt(gdf, gdf_pt):
+    """Fixture to make grids joined to points"""
     x = gridgran.join_pts_to_grid(gdf, gdf_pt)
     yield x
 
