@@ -1,0 +1,9 @@
+./dependencies/Rtree-0.9.7-cp38-cp38-win_amd64.whl
+./dependencies/GDAL-3.2.2-cp38-cp38-win_amd64.whl
+./dependencies/Fiona-1.8.18-cp38-cp38-win_amd64.whl
+./dependencies/pyproj-3.0.1-cp38-cp38-win_amd64.whl
+./dependencies/Shapely-1.8a3-cp38-cp38-win_amd64.whl
+pandas==1.4.2
+geopandas==0.10.2
+pytest==5.4.3
+pytest-mock==3.7.0

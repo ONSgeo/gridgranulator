@@ -2,7 +2,7 @@ from pathlib import Path
 from setuptools import find_packages
 from setuptools import setup
 
-DEPS = Path(__file__).resolve().parent.joinpath('geo_wheels')
+DEPS = Path(__file__).resolve().parent.joinpath('dependencies')
 
 rtree = str(DEPS.joinpath('Rtree-0.9.7-cp38-cp38-win_amd64.whl'))
 gdal = str(DEPS.joinpath('GDAL-3.2.2-cp38-cp38-win_amd64.whl'))
