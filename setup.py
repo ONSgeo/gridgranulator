@@ -19,13 +19,6 @@ setup(
     authoer='David Kerr',
     author_email='david.kerr@ons.gov.uk',
     url='https://github.com/ONSgeo/gridgranulator',
-    install_requires=[
-        f"rtree @ file://localhost/{rtree}",
-        f"gdal @ file://localhost/{gdal}",
-        f"fiona @ file://localhost/{fiona}",
-        f"pyproj @ file://localhost/{pyproj}",
-        f"shapely @ file://localhost/{shapely}",
-        ],
-    packages=find_packages(exclude=('tests*')),
+    packages=find_packages(exclude=['tests*']),
 
 )
