@@ -2,32 +2,21 @@
 
 1. Opens grids and preps ID's for all levels
 2. SJoins to points
-3. Makes another dataframe aggregated to 125m cells 
-4. Carries out checks on 500m level - taking relevant rows from step 2 to an output dataframe
-----
-Checks on 250m
-.
-.
-.
-Checks on 125m
-.
-.
-.
-Bring everything together for top up stage
+3. Makes another dataframe aggregated to 125m cells
+4. Carries out checks on 500m level - taking relevant rows from step 2 to an \
+ output dataframe
+5. Sets dissolve ID to that of parent (current level if 125m) if it cannot
+go any finer
 """
-from pathlib import Path
-import random
-
-import geopandas as gpd
 import numpy as np
-import pandas as pd
 import gridgran
 
 
 def prep_points_and_grid_dataframes(gpkg, classification_dict, cls_2_prp=0):
-    """Returns gdf_grid spatially joined to points in gpkg and another df with grids/points aggregated to 125m.
-    
-    These datasets can be used to carry out checks in grids in different levels (df_grid) AND to move points around (df_grid_pt)
+    """Returns gdf_grid spatially joined to points in gpkg and another df \
+    with grids/points aggregated to 125m.
+    These datasets can be used to carry out checks in grids in different
+    levels (df_grid) AND to move points around (df_grid_pt)
 
     Parameters:
     -----------
@@ -36,7 +25,8 @@ def prep_points_and_grid_dataframes(gpkg, classification_dict, cls_2_prp=0):
 
     classification_dict : (dict)
         Dictionary with keys/values for household thresholds with following
-        keys/values as example (values can be changed but keys should remain the same):
+        keys/values as example (values can be changed but keys should
+        remain the same):
         {
         'p_1': 10,
         'p_2': 40,
@@ -57,7 +47,8 @@ def prep_points_and_grid_dataframes(gpkg, classification_dict, cls_2_prp=0):
     Returns
     -------
     df_grid : pd.DataFrame
-        Dataframe of all points joined to all grids and aggregated to 125m grids but summing pop and households
+        Dataframe of all points joined to all grids and aggregated to 125m
+        grids but summing pop and households
 
     df_grid_pt : pd.DataFrame
         Raw spatially joined data between grids and points.
@@ -70,10 +61,11 @@ def prep_points_and_grid_dataframes(gpkg, classification_dict, cls_2_prp=0):
     df_grid_pt['ID500m_LEVEL_MOVE_ORIGIN'] = np.nan
     df_grid_pt['ID250m_LEVEL_MOVE_ORIGIN'] = np.nan
     df_grid_pt["ID125m_LEVEL_MOVE_ORIGIN"] = np.nan
-    #df_grid_pt["START_POINT"] = df_grid_pt.copy()
+    # df_grid_pt["START_POINT"] = df_grid_pt.copy()
     df_grid_pt = df_grid_pt.assign(START_POINT=df_grid_pt.ID125m.copy())
     df_grid = gridgran.aggregrid(df_grid_pt, classification_dict,
-                                 level='ID125m', template=True, cls_2_prp=cls_2_prp)
+                                 level='ID125m', template=True,
+                                 cls_2_prp=cls_2_prp)
     return df_grid, df_grid_pt
 
 
@@ -81,7 +73,8 @@ def prep_points_and_grid_from_dataframes(df_grids, df_points,
                                          classification_dict,
                                          cls_2_prp=0):
     """
-    Returns gdf_grid spatially joined to df_points and another aggregated to 125m
+    Returns gdf_grid spatially joined to df_points and another aggregated to \
+    125m
     Parameters:
     -----------
     df_grid : (gpd.GeoDataFrame)
@@ -91,7 +84,8 @@ def prep_points_and_grid_from_dataframes(df_grids, df_points,
 
     classification_dict : (dict)
             Dictionary with keys/values for household thresholds with following
-            keys/values as example (values can be changed but keys should remain the same):
+            keys/values as example (values can be changed but keys should
+            remain the same):
             {
             'p_1': 10,
             'p_2': 40,
@@ -111,14 +105,15 @@ def prep_points_and_grid_from_dataframes(df_grids, df_points,
     Returns:
     ---------
     df_grid : (pd.DataFrame)
-        Dataframe of all points joined to all grids and aggregated to 125m grids but summing pop and households
+        Dataframe of all points joined to all grids and aggregated to 125m
+        grids but summing pop and households
     df_grid_pt : pd.DataFrame
         Raw spatially joined data between grids and points.
     """
     gdf = gridgran.prep_df(df_grids, 'grid')
     gdf_pt = gridgran.prep_df(df_points, 'point')
     df_grid_pt = gridgran.join_pts_to_grid(gdf, gdf_pt)
-    df_grid_pt = gridgran.remove_duplicates(df_grid_pt) #Remove duplicates
+    df_grid_pt = gridgran.remove_duplicates(df_grid_pt)  # Remove duplicates
     # in cases where points touch borders
     df_grid_pt = gridgran.insert_index(df_grid_pt)
     # Keep a record of where points have moved
@@ -134,7 +129,6 @@ def prep_points_and_grid_from_dataframes(df_grids, df_points,
     return df_grid, df_grid_pt
 
 
-
 def check_cells(df,
                 df_grid,
                 df_grid_pt,
@@ -142,24 +136,31 @@ def check_cells(df,
                 parent_level,
                 child_level,
                 classification_dict,
-                num_iterations = 100,
-                sample_increase_frequency = 10,
-                number_to_increase_sample = 1,
+                num_iterations=100,
+                sample_increase_frequency=10,
+                number_to_increase_sample=1,
                 cls_2_prp=0):
     """
-    Checks 4 children in each cell of the df current grid level (i.e every 500m cell in each 1km cell) to ascertain whether grid should be aggregated at current level, or if it can be passed to a higher resolution
+    Checks 4 children in each cell of the df current grid level (i.e every
+    500m cell in each 1km cell) to ascertain whether grid should be
+    aggregated at current level, or if it can be passed to a higher resolution
 
     Class Conditions:
     -----------
-    1. If any cells cls 2 : Give rows' IDs all parents' IDS in df_grid and remove ALL 125m rows from df_grid_pt
+    1. If any cells cls 2 : Give rows' IDs all parents' IDS in df_grid and
+    remove ALL 125m rows from df_grid_pt
 
-    2. All 4 OR/AND 0 : pass back as is  
+    2. All 4 OR/AND 0 : pass back as is
 
-    3. All 3 OR 1 : Give rows' IDs all parents' IDS in df_grid and remove ALL 125m rows from df_grid_pt
+    3. All 3 OR 1 : Give rows' IDs all parents' IDS in df_grid and remove
+    ALL 125m rows from df_grid_pt
 
-    4. All cells 0 AND 1 : Give rows' IDs all parents' IDS in df_grid and remove ALL 125m rows from df_grid_pt
+    4. All cells 0 AND 1 : Give rows' IDs all parents' IDS in df_grid and
+    remove ALL 125m rows from df_grid_pt
 
-    5. Cells in [0,1,3,4] : Try to move rows around to make everything 4 OR 0 else give rows' IDs all parents' IDS in df_grid and remove ALL 125m rows from df_grid_pt
+    5. Cells in [0,1,3,4] : Try to move rows around to make everything 4 OR
+    0  else give rows' IDs all parents' IDS in df_grid and remove ALL 125m
+    rows from df_grid_pt
 
 
     Parameters:
@@ -184,7 +185,8 @@ def check_cells(df,
 
     classification_dict : (dict)
         Dictionary with keys/values for household thresholds with following
-        keys/values as example (values can be changed but keys should remain the same):
+        keys/values as example (values can be changed but keys should remain \
+        the same):
         {
         'p_1': 10,
         'p_2': 40,
@@ -218,37 +220,39 @@ def check_cells(df,
     Returns:
     --------
     df_grid : (pd.DataFrame)
-        Processed input grid with ID125m ID's assigned accordingly based on what level data will be disaggregated (aggregated up or kept as is).
-    
+        Processed input grid with ID125m ID's assigned accordingly based on
+        what level data will be disaggregated (aggregated up or kept as is).
     df_grid_pt : (pd.DataFrame)
-        Processed input df_grid_pt with rows removed where data is aggregated up.    
+        Processed input df_grid_pt with rows removed where data is
+        aggregated up.
     """
     SHUFFLE_COMBINATIONS = [[0, 1, 3, 4], [1, 3], [1, 4], [3, 4], [0, 1, 3],
-                        [0, 1, 4], [0, 3, 4], [1, 3,
-                                                   4]]  # Combination of cells' unique classes that warrant attempt to shuffle around values
+                            [0, 1, 4], [0, 3, 4], [1, 3,
+                                                   4]]  # Combination of
+    # cells' unique classes that warrant attempt to shuffle around values
     parent_aggr = df[[parent_level, current_level, 'classification']].groupby(
         parent_level).agg('classification').unique()
     for index, i in parent_aggr.iteritems():
         if np.any(i == 2) or np.all(i == 1) or np.all(i == 3):
-            df_grid = set_dissolve_id_to_parent(df_grid.copy(), parent_level, index)
+            df_grid = set_dissolve_id_to_parent(df_grid.copy(), parent_level,
+                                                index)
         elif sorted(list(np.unique(i))) == [0, 1] or sorted(list(np.unique(
                 i))) == [0, 3]:
             df_grid = set_dissolve_id_to_parent(df_grid.copy(), parent_level,
                                                 index)
         elif list(np.unique(i)) in SHUFFLE_COMBINATIONS:
-            df_grid, df_grid_pt = shuffle_values(df, df_grid, df_grid_pt,
-                                                 current_level, parent_level,
-                                                 child_level, index,
-                                                 classification_dict,
-                                                 num_iterations = num_iterations,
-                                                sample_increase_frequency = sample_increase_frequency,
-                                                number_to_increase_sample =
-                                                 number_to_increase_sample,
-                                                 cls_2_prp=cls_2_prp)
-        #elif np.all(i == 4) or np.all(i == 0) or np.all(
-         #       np.unique(i) == [0, 4]):
-          #  pass ## Return dataframes as are
+            df_grid, df_grid_pt = \
+                shuffle_values(
+                    df, df_grid, df_grid_pt,
+                    current_level, parent_level,
+                    child_level, index,
+                    classification_dict,
+                    num_iterations=num_iterations,
+                    sample_increase_frequency=sample_increase_frequency,
+                    number_to_increase_sample=number_to_increase_sample,
+                    cls_2_prp=cls_2_prp)
     return df_grid, df_grid_pt
+
 
 def set_dissolve_id_to_parent(df_grid, parent_level, index):
     """Sets dissolve ID to ID of cells' parent for use when aggregating up
@@ -272,7 +276,7 @@ def set_dissolve_id_to_parent(df_grid, parent_level, index):
 
     mask = df_grid[parent_level] == index
     df_grid.loc[mask, 'dissolve_id'] = index
-    #df_grid.loc[df_grid[parent_level] == index, 'dissolve_id'] = index
+    # df_grid.loc[df_grid[parent_level] == index, 'dissolve_id'] = index
     return df_grid.copy()
 
 
@@ -291,8 +295,10 @@ def shuffle_values(df,
                    number_to_increase_sample=1,
                    cls_2_prp=0
                    ):
-    """Function attempts to move rows of df_grid_pt around into different ID125m values to try to get classes that allow cells to keep their current resolution, otherwise they are aggregated up to parent level
-    
+    """Function attempts to move rows of df_grid_pt around into different
+    ID125m values to try to get classes that allow cells to keep their
+    current  resolution, otherwise they are aggregated up to parent level
+
     Parameters:
     ------------
     df : (pd.DataFrame)
@@ -319,7 +325,8 @@ def shuffle_values(df,
 
      classification_dict : (dict)
         Dictionary with keys/values for household thresholds with following
-        keys/values as example (values can be changed but keys should remain the same):
+        keys/values as example (values can be changed but keys should remain \
+        the same):
         {
         'p_1': 10,
         'p_2': 40,
@@ -359,10 +366,12 @@ def shuffle_values(df,
     Returns:
     --------
     df_grid : (pd.DataFrame)
-        Processed input grid with ID125m ID's assigned accordingly based on what level data will be disaggregated (aggregated up or kept as is).
-    
+        Processed input grid with ID125m ID's assigned accordingly based on
+         what level data will be disaggregated (aggregated up or kept as is).
+
     df_grid_pt : (pd.DataFrame)
-        Processed input df_grid_pt with rows removed where data is aggregated up.    
+        Processed input df_grid_pt with rows removed where data is
+        aggregated up.
     """
     parent_aggr = df[[parent_level, current_level, 'classification']].groupby(
         parent_level).agg('classification').unique()
@@ -378,20 +387,21 @@ def shuffle_values(df,
                                                            cls_2_prp=cls_2_prp)
         elif unique_vals in [[1, 3], [0, 1, 3], [0, 1, 3, 4], [1, 3, 4]]:
             ok_to_move, df_3_pt, df_excess_pt, df_remainder_pt = \
-                gridgran.check_cls_3_can_become_cls_4(df,
-                                                      df_grid_pt,
-                                                      df_grid,
-                                                      current_level,
-                                                      threshold_p=threshold_p,
-                                                      threshold_h=threshold_h,
-                                                      num_iterations=num_iterations,
-                                                      sample_increase_frequency=sample_increase_frequency,
-                                                      number_to_increase_sample=number_to_increase_sample
-                                                      )
+                gridgran.check_cls_3_can_become_cls_4(
+                    df,
+                    df_grid_pt,
+                    df_grid,
+                    current_level,
+                    threshold_p=threshold_p,
+                    threshold_h=threshold_h,
+                    num_iterations=num_iterations,
+                    sample_increase_frequency=sample_increase_frequency,
+                    number_to_increase_sample=number_to_increase_sample
+                    )
 
-            if not ok_to_move: #Aggregate up to parent level
+            if not ok_to_move:  # Aggregate up to parent level
                 df_grid = set_dissolve_id_to_parent(df_grid.copy(),
-                    parent_level,
+                                                    parent_level,
                                                     index)
             else:
                 try:
