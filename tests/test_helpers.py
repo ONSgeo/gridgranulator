@@ -13,9 +13,6 @@ import gridgran
 BASE = Path(__file__).resolve().parent.joinpath('data')
 
 cells_gdf = gpd.read_file(BASE.joinpath('cells_125_clip.shp')).to_crs(27700)
-
-#cells_gdf = gpd.read_file(r'D:\DATA\eastleigh\GRIDS.gpkg',
- #                         layer='125m').to_crs(27700)
 bfc_gdf = gpd.read_file(BASE.joinpath('BFC_clip.shp'))#.to_crs(27700)
 gpkg = BASE.joinpath('GRID_1km_SUBSET.gpkg')
 point = gpd.read_file(gpkg, layer='points')
