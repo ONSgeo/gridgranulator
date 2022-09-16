@@ -1,3 +1,5 @@
 name: gridgran
+channels:
+  - conda-forge
 dependencies:
   - geopandas
