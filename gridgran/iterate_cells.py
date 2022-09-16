@@ -5,13 +5,15 @@ check grandchild cells are over disclosure limit
 import numpy as np
 
 import gridgran
+
+
 def check_cells_children_are_valid(df,
                                    df_grid,
                                    df_grid_pt, current_level,
                                    parent_level,
                                    child_level,
                                    classification_dict,
-                                   cls_2_prp=0,):
+                                   cls_2_prp=0, ):
     """Checks and tries to bring cells over disclosure limit and returns
     grids, points and df (aggregated to current level - 4 rows), as well as
     boolean indicating whether cell's children are over disclosure limit.
@@ -38,7 +40,8 @@ def check_cells_children_are_valid(df,
 
     classification_dict : (dict)
         Dictionary with keys/values for household thresholds with following
-        keys/values as example (values can be changed but keys should remain the same):
+        keys/values as example (values can be changed but keys should remain
+         the same):
         {
         'p_1': 10,
         'p_2': 40,
@@ -59,10 +62,12 @@ def check_cells_children_are_valid(df,
     Returns:
     --------
     df_grid_checked : (pd.DataFrame)
-        Processed input grid with ID125m ID's assigned accordingly based on what level data will be disaggregated (aggregated up or kept as is).
+        Processed input grid with ID125m ID's assigned accordingly based on
+         what level data will be disaggregated (aggregated up or kept as is).
 
     df_grid_pt_checked : (pd.DataFrame)
-        Processed input df_grid_pt with rows removed where data is aggregated up.
+        Processed input df_grid_pt with rows removed where data is aggregated
+         up.
 
     df_checked : (pd.DataFrame)
         df_grid_pt_checked aggregated and classified to current level (4 rows)
@@ -71,20 +76,21 @@ def check_cells_children_are_valid(df,
         True if children cells above disclosure limit, else False
 
     """
-    df_grid_checked, df_grid_pt_checked = gridgran.check_cells(df,
-                                                df_grid,
-                                                df_grid_pt,
-                                                current_level,
-                                                parent_level,
-                                                child_level,
-                                                classification_dict,
-                                                cls_2_prp=cls_2_prp)
+    df_grid_checked, df_grid_pt_checked = gridgran.check_cells(
+        df,
+        df_grid,
+        df_grid_pt,
+        current_level,
+        parent_level,
+        child_level,
+        classification_dict,
+        cls_2_prp=cls_2_prp)
     df_checked = gridgran.aggregrid(df_grid_pt_checked, classification_dict,
                                     level=current_level,
                                     template=False,
                                     cls_2_prp=cls_2_prp)
     if np.all(df_grid_checked.dissolve_id.isna()):
-        child_cells_valid = True # Dissolve id hasn't been set meaning all
+        child_cells_valid = True  # Dissolve id hasn't been set meaning all
         # cells are above disclosure limit
     else:
         child_cells_valid = False
@@ -92,10 +98,13 @@ def check_cells_children_are_valid(df,
         print("CURRENT LEVEL", current_level)
         print("PARENT LEVEL", parent_level)
         print("CHILD LEVEL", child_level)
-        print('LOOK AT gridgran.check_cells and find out why J80069539124 is being clipped off')
+        print(
+            'LOOK AT gridgran.check_cells and find out why J80069539124 is  '
+            'being clipped off')
         print('df_grid_checked', df_grid_checked)
         print('df_checked', df_checked)
     return df_grid_checked, df_grid_pt_checked, df_checked, child_cells_valid
+
 
 def get_children_ids(df, current_level):
     """Returns list of IDS current level column in df
@@ -115,6 +124,7 @@ def get_children_ids(df, current_level):
     """
     children_ids = list(df[current_level].unique())
     return children_ids
+
 
 def subset_by_id(df_grid, df_pt_grid, current_level, child_level, subset_id,
                  classification_dict, cls_2_prp=0):
@@ -137,7 +147,8 @@ def subset_by_id(df_grid, df_pt_grid, current_level, child_level, subset_id,
 
     classification_dict : (dict)
         Dictionary with keys/values for household thresholds with following
-        keys/values as example (values can be changed but keys should remain the same):
+        keys/values as example (values can be changed but keys should remain \
+         the same):
         {
         'p_1': 10,
         'p_2': 40,
@@ -175,4 +186,3 @@ def subset_by_id(df_grid, df_pt_grid, current_level, child_level, subset_id,
                                    template=False,
                                    cls_2_prp=cls_2_prp)
     return df_grid_subset, df_grid_pt_subset, df_subset
-

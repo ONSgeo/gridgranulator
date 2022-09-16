@@ -1,7 +1,4 @@
 """Utilities to help moving points between cells"""
-
-import geopandas as gpd
-import numpy as np
 import pandas as pd
 import random
 
@@ -38,8 +35,11 @@ def get_excess_df(df,
                   threshold_p=50,
                   num_iterations=100,
                   sample_increase_frequency=10,
-                  number_to_increase_sample=1,):
-    """Returns dataframe of 'excess points' gather from class 1 cells in DF, as well as overflow points in class 4. Also returns dataframe of class 3 points, as well as all remaining rows (0 cells and 4 cells not over limit)
+                  number_to_increase_sample=1, ):
+    """Returns dataframe of 'excess points' gather from class 1 cells in DF,
+     as well as overflow points in class 4. Also returns dataframe of class 3
+      points, as well as all remaining rows (0 cells and 4 cells not over
+       limit)
 
     Parameters:
     ------------
@@ -70,7 +70,8 @@ def get_excess_df(df,
 
     sample_increase_frequency : (int)
         Sample n (threshold_h) increases by number_to_increase_sample every
-        sample_increase_frequency iterations in while loop. (DEFAULT = 5) - FOR USE IN
+        sample_increase_frequency iterations in while loop. (DEFAULT = 5) -
+         FOR USE IN
         separate_excess_rows_in_df_cls_4()
 
     number_to_increase_sample : (int)
@@ -91,19 +92,21 @@ def get_excess_df(df,
         All remaining point/rows that are not excess or class 3
 
     """
-    df_3_pt = df_grid_pt[df_grid_pt[current_level].isin(df[current_level][
-                                                            df.classification == 3].to_list())]
-    df_1_pt = df_grid_pt[df_grid_pt[current_level].isin(df[current_level][
-                                                            df.classification == 1].to_list())]
-    excess_df_list, remainder_df_list = get_list_of_execess_cls_4_and_remainder_of_cls4(df_grid_pt,
-                                                    df,
-                                                    current_level,
-                                                    threshold_h=threshold_h,
-                                                    threshold_p=threshold_p,
-                                                    num_iterations=100,
-                                                    sample_increase_frequency=10,
-                                                    number_to_increase_sample=1,
-                                                    )
+    df_3_pt = df_grid_pt[df_grid_pt[current_level].isin(
+        df[current_level][df.classification == 3].to_list())]
+    df_1_pt = df_grid_pt[df_grid_pt[current_level].isin(
+        df[current_level][df.classification == 1].to_list())]
+    excess_df_list, remainder_df_list = \
+        get_list_of_execess_cls_4_and_remainder_of_cls4(
+            df_grid_pt,
+            df,
+            current_level,
+            threshold_h=threshold_h,
+            threshold_p=threshold_p,
+            num_iterations=100,
+            sample_increase_frequency=10,
+            number_to_increase_sample=1,
+        )
     excess_df_list.append(df_1_pt)
     df_everything_remaining = df_grid_pt[df_grid_pt[current_level].isin(
         df[current_level][df.classification.isin([0])])]  # Catch
@@ -115,15 +118,17 @@ def get_excess_df(df,
         remainder_points_df = df_grid_pt.copy()[0:0]
     return excess_points_df, df_3_pt, remainder_points_df
 
-def get_list_of_execess_cls_4_and_remainder_of_cls4(df_grid_pt,
-                                                    df,
-                                                    current_level,
-                                                    threshold_h=25,
-                                                    threshold_p=50,
-                                                    num_iterations=100,
-                                                    sample_increase_frequency=10,
-                                                    number_to_increase_sample=1,
-                                                    ):
+
+def get_list_of_execess_cls_4_and_remainder_of_cls4(
+        df_grid_pt,
+        df,
+        current_level,
+        threshold_h=25,
+        threshold_p=50,
+        num_iterations=100,
+        sample_increase_frequency=10,
+        number_to_increase_sample=1,
+        ):
     """Returns a list of excess cls 4's in each cell of df, as well as list
     of remainder class 4's that are not excess
 
@@ -153,7 +158,8 @@ def get_list_of_execess_cls_4_and_remainder_of_cls4(df_grid_pt,
 
     sample_increase_frequency : (int)
         Sample n (threshold_h) increases by number_to_increase_sample every
-        sample_increase_frequency iterations in while loop. (DEFAULT = 5) - FOR USE IN
+        sample_increase_frequency iterations in while loop. (DEFAULT = 5) -
+         FOR USE IN
         separate_excess_rows_in_df_cls_4()
 
     number_to_increase_sample : (int)
@@ -173,29 +179,29 @@ def get_list_of_execess_cls_4_and_remainder_of_cls4(df_grid_pt,
     """
     excess_df_list = []
     remainder_df_list = []
-    df_4_pt = df_grid_pt[df_grid_pt[current_level].isin(df[current_level][
-                                                            df.classification == 4].to_list())]
+    df_4_pt = df_grid_pt[df_grid_pt[current_level].isin(
+        df[current_level][df.classification == 4].to_list())]
     if not df_4_pt.empty:
         IDS_4 = list(df_4_pt[current_level].unique())
         for id in IDS_4:
             df_4 = df_4_pt[df_4_pt[current_level] == id]
             try:
                 df_pt_separated, df_pt_excess = \
-                    separate_excess_rows_in_df_cls_4(df_4,
-                                                     threshold_h=threshold_h,
-                                                     threshold_p=threshold_p,
-                                                     num_iterations=num_iterations,
-                                                     sample_increase_frequency=sample_increase_frequency,
-                                                     number_to_increase_sample=number_to_increase_sample,
-                                                     )
-                #if not df_pt_excess.empty:
+                    separate_excess_rows_in_df_cls_4(
+                        df_4,
+                        threshold_h=threshold_h,
+                        threshold_p=threshold_p,
+                        num_iterations=num_iterations,
+                        sample_increase_frequency=sample_increase_frequency,
+                        number_to_increase_sample=number_to_increase_sample,
+                        )
+                # if not df_pt_excess.empty:
                 excess_df_list.append(df_pt_excess)
                 remainder_df_list.append(df_pt_separated)
             except gridgran.DataFrameCouldNotBeSeparatedException:
                 remainder_df_list.append(df_4)  # If nothing can be separated
                 # out, append all the rows to excess list
     return excess_df_list, remainder_df_list
-
 
 
 def separate_excess_rows_in_df_cls_4(df_pt,
@@ -213,7 +219,8 @@ def separate_excess_rows_in_df_cls_4(df_pt,
 
     Algorithm will only be run num_iterations until threshold is met. If
     after sample_increase_frequency the threshold isn't met, threshold_h
-    will be increased by number_to_increase_sample to try to get the correct value.
+    will be increased by number_to_increase_sample to try to get the correct
+     value.
 
     Parameters:
     -----------
@@ -247,19 +254,20 @@ def separate_excess_rows_in_df_cls_4(df_pt,
     best_match = 1000
     best_match_df = None
     while not optimal_reached:
-        if (len(df_pt[df_pt.p > 0]) - threshold_h >= threshold_h) & (df_pt[
-                                                                     df_pt.p >
-                                                             0].p.sum() - threshold_p >=
-                                                                     threshold_p):
-            sample_df = df_pt[df_pt.p > 0].sample(n=threshold_h)  # subset a sample
+        if (len(df_pt[df_pt.p > 0]) - threshold_h >= threshold_h) & \
+                (df_pt[df_pt.p > 0].p.sum() - threshold_p >= threshold_p):
+            sample_df = df_pt[df_pt.p > 0].sample(
+                n=threshold_h)  # subset a sample
             pop = sample_df.p.sum()
             if pop - threshold_p >= 0:  # Pop should be more than the theshold
                 if pop - threshold_p < best_match:
                     best_match = pop - threshold_p
                     best_match_df = sample_df.copy()
                 # if sample_df.p.mean() <= df_pt.p.mean():
-                if (sample_df.p.mean() - df_pt.p.mean()) / df_pt.p.mean() <= 0.05:
-                    # Is the sample mean within 5% of the whole population mean?
+                if (sample_df.p.mean() - df_pt.p.mean()) / df_pt.p.mean() \
+                        <= 0.05:
+                    # Is the sample mean within 5% of the whole population
+                    # mean?
                     optimal_reached = True
             counter += 1
             if counter % sample_increase_frequency == 0:
@@ -271,6 +279,7 @@ def separate_excess_rows_in_df_cls_4(df_pt,
     df_pt_separated, df_pt_excess = get_separated_points_and_excess_points(
         best_match_df, df_pt, threshold_p, threshold_h)
     return df_pt_separated, df_pt_excess
+
 
 def get_separated_points_and_excess_points(best_match_df,
                                            df_pt,
@@ -310,19 +319,9 @@ def get_separated_points_and_excess_points(best_match_df,
         assert len(df_pt_separated[df_pt_separated.p > 0]) >= threshold_h
         df_pt_excess = df_pt[~df_pt.ID125m.isin(best_match_df.ID125m.unique())]
     except AssertionError:
-        raise gridgran.DataFrameCouldNotBeSeparatedException("DataFrame "
-                                                             "could not "
-                                                             "be "
-                                                             "separated effectively to "
-                                                             "meet threshold")
-    #print("SORT OUT get_separated_points_and_excess_points in "
-    #      "shuffle_helpers line 318")
-    print('get_separated_points_and_excess_points')
-    print('df_pt_separated', len(df_pt_separated))
-    print('df_pt_excess', len(df_pt_excess))
+        raise gridgran.DataFrameCouldNotBeSeparatedException(
+            "DataFrame could not be separated effectively to meet threshold")
     return df_pt_separated, df_pt_excess
-
-
 
 
 def move_cls_1_to_4(df, df_grid, df_grid_pt, current_level, parent_level,
@@ -355,7 +354,8 @@ def move_cls_1_to_4(df, df_grid, df_grid_pt, current_level, parent_level,
 
     classification_dict : (dict)
         Dictionary with keys/values for household thresholds with following
-        keys/values as example (values can be changed but keys should remain the same):
+        keys/values as example (values can be changed but keys should remain \
+         the same):
         {
         'p_1': 10,
         'p_2': 40,
@@ -376,23 +376,24 @@ def move_cls_1_to_4(df, df_grid, df_grid_pt, current_level, parent_level,
     Returns:
     --------
     df_grid : (pd.DataFrame)
-        Processed input grid with ID125m ID's assigned accordingly based on what level data will be disaggregated (aggregated up or kept as is).
+        Processed input grid with ID125m ID's assigned accordingly based on \
+         what level data will be disaggregated (aggregated up or kept as is).
 
     df_grid_pt : (pd.DataFrame)
-        Processed input df_grid_pt with rows removed where data is aggregated up.
+        Processed input df_grid_pt with rows removed where data is
+        aggregated up.
     """
     ids_1 = gridgran.get_ids(df, current_level, 1)
     ids_4 = gridgran.get_ids(df, current_level, 4)
-    ids_to_change_to = gridgran.get_list_of_rowIDS_for_list_of_IDS(df_grid,
-                                                                   ids_4,
-                                                                   current_level)
+    ids_to_change_to = gridgran.get_list_of_rowIDS_for_list_of_IDS(
+        df_grid, ids_4, current_level)
     points_to_move = df_grid_pt[df_grid_pt[current_level].isin(ids_1)]
     df_grid_pt = df_grid_pt[~df_grid_pt[current_level].isin(ids_1)]
     rows_to_insert_back = points_to_move.copy()
     rows_to_insert_back.loc[:, 'p'] = 0
     rows_to_insert_back.loc[:, 'h'] = 0
     col = f'{current_level}_LEVEL_MOVE_ORIGIN'
-    #if len(points_to_move):
+    # if len(points_to_move):
     points_to_move = points_to_move.reset_index(drop=True)
     points_to_move.loc[:, col] = points_to_move.ID125m.copy()
     points_to_move = points_to_move.apply(change_to_random_id,
@@ -402,7 +403,8 @@ def move_cls_1_to_4(df, df_grid, df_grid_pt, current_level, parent_level,
                                  rows_to_insert_back]).reset_index(drop=True)
     df_grid_pt = pd.concat([df_grid_pt, ROWS_TO_REPLACE])
     df_grid = gridgran.aggregrid(df_grid_pt, classification_dict,
-                                 level='ID125m', template=True, cls_2_prp=cls_2_prp)
+                                 level='ID125m', template=True,
+                                 cls_2_prp=cls_2_prp)
     return df_grid, df_grid_pt
 
 
@@ -411,15 +413,17 @@ def make_cls_3_to_cls_4(df_3_pt,
                         df_remainder_pt,
                         current_level,
                         classification_dict,
-                        threshold_h = 25,
-                        threshold_p = 50,
-                        num_iterations = 100,
-                        sample_increase_frequency = 10,
-                        number_to_increase_sample = 1,
+                        threshold_h=25,
+                        threshold_p=50,
+                        num_iterations=100,
+                        sample_increase_frequency=10,
+                        number_to_increase_sample=1,
                         cls_2_prp=0
                         ):
     """Function makes attempt at bringing class 3 df over threshold using
-    excess points. All dataFrames are then concatenated and returned. If any df_3 can not be brought over disclosure threshold, all dataframes are concatenated and aggregated up to parent level
+    excess points. All dataFrames are then concatenated and returned. If any
+     df_3 can not be brought over disclosure threshold, all dataframes are
+      concatenated and aggregated up to parent level
 
     Parameters:
     ------------
@@ -438,7 +442,8 @@ def make_cls_3_to_cls_4(df_3_pt,
 
     classification_dict : (dict)
         Dictionary with keys/values for household thresholds with following
-        keys/values as example (values can be changed but keys should remain the same):
+        keys/values as example (values can be changed but keys should remain
+         the same):
         {
         'p_1': 10,
         'p_2': 40,
@@ -486,24 +491,26 @@ def make_cls_3_to_cls_4(df_3_pt,
     for index, id_3 in enumerate(df_3_pt[current_level].unique()):
         df_3 = df_3_pt[df_3_pt[current_level] == id_3]
         p_needed, h_needed = get_p_h_needed(df_3, threshold_p, threshold_h)
-        if index == len(list(df_3_pt[current_level].unique())) - 1: #If this
+        if index == len(list(df_3_pt[current_level].unique())) - 1:  # If this
             # is the last ID in df_3_pt, pass ALL excess points to it
             if (len(df_excess_pt) >= h_needed) & (df_excess_pt.p.sum() >=
                                                   p_needed):
                 best_match_df = df_excess_pt[df_excess_pt.p > 0].copy()
             else:
                 best_match_df = None
-        else: #Else only take what's needed from excess points
-            best_match_df = get_excess_points_for_cls_3_df(df_excess_pt,
-                                          p_needed,
-                                          h_needed,
-                                          num_iterations=100,
-                                          sample_increase_frequency=10,
-                                          number_to_increase_sample=1)
+        else:  # Else only take what's needed from excess points
+            best_match_df = get_excess_points_for_cls_3_df(
+                df_excess_pt,
+                p_needed,
+                h_needed,
+                num_iterations=100,
+                sample_increase_frequency=10,
+                number_to_increase_sample=1)
         try:
             assert isinstance(best_match_df, pd.DataFrame)
             df_grid_tmp = gridgran.aggregrid(df_3, classification_dict,
-                                             level='ID125m', cls_2_prp=cls_2_prp)
+                                             level='ID125m',
+                                             cls_2_prp=cls_2_prp)
             ids_to_change_to = gridgran.get_list_of_rowIDS_for_list_of_IDS(
                 df_grid_tmp, [id_3], current_level)
             df_excess_pt.loc[best_match_df.index, 'p'] = 0
@@ -511,9 +518,10 @@ def make_cls_3_to_cls_4(df_3_pt,
             col = f'{current_level}_LEVEL_MOVE_ORIGIN'
             best_match_df = best_match_df.reset_index(drop=True)
             best_match_df.loc[:, col] = best_match_df.ID125m.copy()
-            best_match_df = best_match_df.apply(change_to_random_id,
-                                                    ids_to_change_to=ids_to_change_to,
-                                                    axis=1).copy()
+            best_match_df = best_match_df.apply(
+                change_to_random_id,
+                ids_to_change_to=ids_to_change_to,
+                axis=1).copy()
             df_3_to_4_list.append(pd.concat([df_3, best_match_df]))
         except AssertionError:
             raise gridgran.DataFrameNotOverDisclosureLimitException
@@ -522,7 +530,8 @@ def make_cls_3_to_cls_4(df_3_pt,
     df_grid_pt = pd.concat([df_3_to_4, df_excess_pt, df_remainder_pt])
 
     df_grid = gridgran.aggregrid(df_grid_pt, classification_dict,
-    level="ID125m", template=True, cls_2_prp=cls_2_prp)
+                                 level="ID125m", template=True,
+                                 cls_2_prp=cls_2_prp)
     return df_grid, df_grid_pt
 
 
@@ -572,7 +581,8 @@ def get_excess_points_for_cls_3_df(df_excess_pt,
     --------
     best_match_df : (pd.DataFrame)
         Function tries to match p and h needed as closely as possible and
-        returns those points extraced. Else raises DataFrameNotOverDisclosureLimitException
+        returns those points extraced. Else raises
+         DataFrameNotOverDisclosureLimitException
 
     """
     counter = 0  # Count number of iterations
@@ -598,9 +608,6 @@ def get_excess_points_for_cls_3_df(df_excess_pt,
         if counter >= num_iterations:
             optimal_reached = True
     return best_match_df
-
-
-
 
 
 def get_p_h_needed(df_grid_pt, threshold_p,
@@ -651,7 +658,8 @@ def check_cls_3_can_become_cls_4(df,
         Dataframe aggregated to current level (4 cells)
 
     df_grid_pt : (pd.DataFrame)
-        Dataframe of all points/empty cells in current level len == n points + n empty cells
+        Dataframe of all points/empty cells in current level len == n points
+         + n empty cells
 
     df_grid : (df.DataFrame)
         Global dataframe of all cells in current level down to all children
@@ -679,27 +687,31 @@ def check_cls_3_can_become_cls_4(df,
     Returns:
     ---------
     ok_to_move : (bool)
-        True if enough cells to fill all class 3 cells to make them class 4, else False
+        True if enough cells to fill all class 3 cells to make them class 4,
+         else False
 
     df_3_pt : (pd.DataFrame)
         DataFrame of all points in class 3 cells
 
     df_excess_pt : (pd.DataFrame)
-        DataFrame of all extra points gathered from class 1 cells as well as excess points from class 4 cells that can be used to fill class 3 cells.
+        DataFrame of all extra points gathered from class 1 cells as well as
+         excess points from class 4 cells that can be used to fill class 3
+          cells.
 
     remainder_points_df : (pd.DataFrame)
         All remaining points (not excess or in class 1/4)
     """
-    df_excess_pt, df_3_pt, df_remainder_pt = gridgran.get_excess_df(df,
-                                                                    df_grid_pt,
-                                                                    df_grid,
-                                                                    current_level,
-                                                                    threshold_h=threshold_h,
-                                                                    threshold_p=threshold_p,
-                                                                    num_iterations=num_iterations,
-                                                                    sample_increase_frequency=sample_increase_frequency,
-                                                                    number_to_increase_sample=number_to_increase_sample
-                                                                    )
+    df_excess_pt, df_3_pt, df_remainder_pt = gridgran.get_excess_df(
+        df,
+        df_grid_pt,
+        df_grid,
+        current_level,
+        threshold_h=threshold_h,
+        threshold_p=threshold_p,
+        num_iterations=num_iterations,
+        sample_increase_frequency=sample_increase_frequency,
+        number_to_increase_sample=number_to_increase_sample
+        )
     ok_to_move = False
     IDS = df_3_pt[current_level].unique()
     p_needed_total = 0
@@ -721,4 +733,3 @@ def check_cls_3_can_become_cls_4(df,
         df_excess_pt = df_grid_pt.copy()[0:0]
         df_remainder_pt = df_grid_pt.copy()[0:0]
     return ok_to_move, df_3_pt, df_excess_pt, df_remainder_pt
-

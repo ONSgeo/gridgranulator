@@ -397,7 +397,7 @@ def shuffle_values(df,
                     num_iterations=num_iterations,
                     sample_increase_frequency=sample_increase_frequency,
                     number_to_increase_sample=number_to_increase_sample
-                    )
+                )
 
             if not ok_to_move:  # Aggregate up to parent level
                 df_grid = set_dissolve_id_to_parent(df_grid.copy(),

@@ -41,9 +41,9 @@ def remove_water_cells(gdf_125m, gdf_bfc, return_water=False):
     #                              how='left',
     #                              predicate='intersects').dropna()
 
-    gdf_125_int = gpd.sjoin(gdf_125m,gdf_bfc,
-                                 how='left',
-                                 predicate='intersects').dropna()
+    gdf_125_int = gpd.sjoin(gdf_125m, gdf_bfc,
+                            how='left',
+                            predicate='intersects').dropna()
     if return_water:
         gdf_125m_clip = gdf_125m[
             ~gdf_125m.GridID125m.isin(gdf_125_int.GridID125m)]
