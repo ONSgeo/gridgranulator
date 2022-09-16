@@ -1,5 +1,5 @@
 name: gridgran
 channels:
-  - main
+  - default
 dependencies:
   - geopandas
