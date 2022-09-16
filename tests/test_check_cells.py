@@ -1,13 +1,7 @@
 from pathlib import Path
 import pytest
-from pytest_mock import mocker
-from unittest import mock
-
-import geopandas as gpd
 import numpy as np
 import pandas as pd
-
-
 
 import gridgran
 
@@ -15,18 +9,20 @@ BASE = Path(__file__).resolve().parent.joinpath('data')
 gpkg = BASE.joinpath('GRID_1km_SUBSET.gpkg')
 
 CLASSIFICATION_DICT = {
-        'p_1': 10,
-        'p_2': 40,
-        'p_3': 50,
-        'h_1': 5,
-        'h_2': 20,
-        'h_3': 25,
-        }
+    'p_1': 10,
+    'p_2': 40,
+    'p_3': 50,
+    'h_1': 5,
+    'h_2': 20,
+    'h_3': 25,
+}
+
 
 @pytest.fixture
 def dfs():
     """Makes grid joined to points but not agrregated - i.e. RAW"""
-    df_grid, df_grid_pt = gridgran.prep_points_and_grid_dataframes(gpkg, CLASSIFICATION_DICT)
+    df_grid, df_grid_pt = gridgran.prep_points_and_grid_dataframes(
+        gpkg, CLASSIFICATION_DICT)
     yield (df_grid, df_grid_pt)
 
 
@@ -42,10 +38,11 @@ def test_prep_points_and_grid_dataframes(dfs):
     assert np.all(df_grid_pt.START_POINT == df_grid_pt.ID125m)
     assert 'uprn' in df_grid_pt.columns
 
+
 def test_set_dissolve_id_to_parent(dfs):
     df_grid = dfs[0]
-    df_grid_pt = dfs[1]
-    df_grid = gridgran.set_dissolve_id_to_parent(df_grid, "ID1000m", "J80070856000")
+    df_grid = gridgran.set_dissolve_id_to_parent(df_grid, "ID1000m",
+                                                 "J80070856000")
     assert np.all(df_grid.dissolve_id == "J80070856000")
 
 
@@ -151,7 +148,9 @@ def test_check_level_cls_ALL_0_AND_1_OR_0_AND_3(dfs, values,
 ])
 def test_check_level_cls_in_0_1_3_4(dfs, values, mocker):
     """Test to check that classes that qualify for shuffling are passed to
-    the shuffle_values function. THIS TEST ONLY CHECKS IF THE SHUFFLE_VALUES FUNCTION IS CALLED. THE ACTUAL FUNCTIONALITY IS TESTED IN TEST_SHUFFLE_VALUES.PY"""
+    the shuffle_values function. THIS TEST ONLY CHECKS IF THE SHUFFLE_VALUES
+    FUNCTION IS CALLED. THE ACTUAL FUNCTIONALITY IS TESTED IN
+     TEST_SHUFFLE_VALUES.PY"""
     df_grid, df_grid_pt = dfs
     class_df = gridgran.aggregrid(df_grid_pt, CLASSIFICATION_DICT,
                                   level='ID500m')
@@ -164,4 +163,3 @@ def test_check_level_cls_in_0_1_3_4(dfs, values, mocker):
                                                'ID500m', 'ID1000m',
                                                'ID250m', CLASSIFICATION_DICT)
     assert mocked.called
-

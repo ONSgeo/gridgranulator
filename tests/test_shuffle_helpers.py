@@ -4,7 +4,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import pytest
-from pytest_mock import mocker
 
 import gridgran
 
@@ -18,19 +17,21 @@ BASE = Path(__file__).resolve().parent.joinpath('data')
 gpkg = BASE.joinpath('GRID_1km_SUBSET.gpkg')
 
 CLASSIFICATION_DICT = {
-        'p_1': 10,
-        'p_2': 40,
-        'p_3': 49,
-        'h_1': 5,
-        'h_2': 20,
-        'h_3': 24,
-        }
+    'p_1': 10,
+    'p_2': 40,
+    'p_3': 49,
+    'h_1': 5,
+    'h_2': 20,
+    'h_3': 24,
+}
 
 
 @pytest.fixture
 def dfs():
     """Makes grid joined to points by not agrregated - i.e. RAW"""
-    df_grid, df_grid_pt = gridgran.prep_points_and_grid_dataframes(gpkg, CLASSIFICATION_DICT)
+    df_grid, df_grid_pt = gridgran.prep_points_and_grid_dataframes(
+        gpkg,
+        CLASSIFICATION_DICT)
     df = gridgran.aggregrid(df_grid_pt, CLASSIFICATION_DICT, level='ID500m')
     yield (df_grid, df_grid_pt, df)
 
@@ -47,10 +48,9 @@ def test_shuffle_values_0_1_4(dfs, cell_configs):
     df, df_pt, df_grid = tests.make_any_combination(DF, DF_GRID_PT,
                                                     DF_GRID, cell_configs)
     parent_index = df.ID1000m[0]
-    df_grid, df_grid_pt = gridgran.shuffle_values(df, df_grid, df_pt, \
-                                                  "ID500m", "ID1000m",
-                                                  "ID250m", parent_index,
-                                                  CLASSIFICATION_DICT,)
+    df_grid, df_grid_pt = gridgran.shuffle_values(
+        df, df_grid, df_pt, "ID500m", "ID1000m", "ID250m", parent_index,
+        CLASSIFICATION_DICT, )
     DF_MOVED = gridgran.aggregrid(df_grid_pt, CLASSIFICATION_DICT,
                                   level='ID500m',
                                   template=True)
@@ -60,7 +60,7 @@ def test_shuffle_values_0_1_4(dfs, cell_configs):
     assert df_grid_pt.p.sum() == df_pt.p.sum()
     assert DF_MOVED.p.sum() == df_grid_pt.p.sum()
     assert len(DF_MOVED.ID500m.unique()) == 4
-    assert not 1 in DF_MOVED.classification.to_list()
+    assert 1 not in DF_MOVED.classification.to_list()
     assert 0 in DF_MOVED.classification.to_list()
     assert 4 in DF_MOVED.classification.to_list()
 
@@ -76,12 +76,9 @@ def test_move_cls_1_to_4(dfs, cell_configs):
     df_grid, df_grid_pt, df = dfs
     DF, DF_GRID_PT, DF_GRID = tests.make_any_combination(df, df_grid_pt,
                                                          df_grid, cell_configs)
-    df_grid_moved, df_grid_pt_moved = gridgran.move_cls_1_to_4(DF, DF_GRID,
-                                                               DF_GRID_PT,
-                                                               "ID500m",
-                                                               "ID1000m",
-                                                               "ID250m",
-                                                               CLASSIFICATION_DICT)
+    df_grid_moved, df_grid_pt_moved = gridgran.move_cls_1_to_4(
+        DF, DF_GRID, DF_GRID_PT, "ID500m", "ID1000m", "ID250m",
+        CLASSIFICATION_DICT)
     DF_MOVED = gridgran.aggregrid(df_grid_pt_moved, CLASSIFICATION_DICT,
                                   level='ID500m',
                                   template=True)
@@ -91,7 +88,7 @@ def test_move_cls_1_to_4(dfs, cell_configs):
     assert df_grid_pt_moved.p.sum() == DF_GRID_PT.p.sum()
     assert DF_MOVED.p.sum() == df_grid_pt_moved.p.sum()
     assert len(DF_MOVED.ID500m.unique()) == 4
-    assert not 1 in DF_MOVED.classification.to_list()
+    assert 1 not in DF_MOVED.classification.to_list()
     assert 0 in DF_MOVED.classification.to_list()
     assert 4 in DF_MOVED.classification.to_list()
 
@@ -107,13 +104,9 @@ def test_move_cls_1_to_4_from_check_cells(dfs, cell_configs):
     df_grid, df_grid_pt, df = dfs
     DF, DF_GRID_PT, DF_GRID = tests.make_any_combination(df, df_grid_pt,
                                                          df_grid, cell_configs)
-    df_grid_shuffled, df_pt_grid_shuffled = gridgran.check_cells(DF,
-                                                                 DF_GRID,
-                                                                 DF_GRID_PT,
-                                                                 "ID500m",
-                                                                 "ID1000m",
-                                                                 "ID250m",
-                                                                 CLASSIFICATION_DICT)
+    df_grid_shuffled, df_pt_grid_shuffled = gridgran.check_cells(
+        DF, DF_GRID, DF_GRID_PT, "ID500m", "ID1000m", "ID250m",
+        CLASSIFICATION_DICT)
     DF_AGGR = gridgran.aggregrid(df_pt_grid_shuffled, CLASSIFICATION_DICT,
                                  level="ID500m",
                                  template=False)
@@ -141,6 +134,7 @@ def test_separate_excess_rows_in_df_cls_4(dfs, cell_configs):
             gridgran.separate_excess_rows_in_df_cls_4(df_pt)
         assert len(df_pt) == len(df_pt_separated) + len(df_pt_excess)
 
+
 @pytest.mark.parametrize("cell_configs", [
     ([0, 0, 0, 4]),
     ([0, 0, 4, 4]),
@@ -158,8 +152,8 @@ def test_separated_points_and_excess_points(dfs, cell_configs):
             gridgran.separate_excess_rows_in_df_cls_4(df_pt)
 
         df_pt_sep, df_pt_ex = \
-        gridgran.get_separated_points_and_excess_points(
-        df_pt_separated, df_pt, 50, 20)
+            gridgran.get_separated_points_and_excess_points(
+                df_pt_separated, df_pt, 50, 20)
         assert len(df_pt_sep) == len(df_pt_separated)
 
 
@@ -217,7 +211,7 @@ def test_lower_thresholds_make_class_4_df_pt_meet_threshold(dfs, cell_configs):
     ([1, 3, 4, 4]),
     ([4, 4, 4, 4])
 ])
-def test_make_class_4_df_pt_meet_threshold_raises_exception_when_not_enough_points(
+def test_make_class_4_df_pt_meet_threshold_raises_exception_not_enough_points(
         dfs, cell_configs):
     df_grid, df_grid_pt, df = dfs
     DF, DF_GRID_PT, DF_GRID = tests.make_any_combination(df, df_grid_pt,
@@ -230,10 +224,11 @@ def test_make_class_4_df_pt_meet_threshold_raises_exception_when_not_enough_poin
     DF_PT_TO_SEPARATE = DF_GRID_PT[DF_GRID_PT.ID500m == ID_TO_SEPARATE]
     with pytest.raises(
             gridgran.DataFrameCouldNotBeSeparatedException) as exc_info:
-        df_pt_separated, df_pt_excess = gridgran.separate_excess_rows_in_df_cls_4(
-            DF_PT_TO_SEPARATE)
+        df_pt_separated, df_pt_excess = \
+            gridgran.separate_excess_rows_in_df_cls_4(DF_PT_TO_SEPARATE)
         assert exc_info.value.args[
-                   0] == "DataFrame could not be separated effectively to meet threshold"
+                   0] == "DataFrame could not be separated effectively to " \
+                         "meet threshold"
 
 
 @pytest.mark.parametrize("cell_configs", [
@@ -286,24 +281,23 @@ def test_get_p_h_needed(dfs, cell_configs):
     ([4, 4, 4, 4])
 ])
 def test_get_excess_df(dfs, cell_configs):
-    threshold_h = 25
-    threshold_p = 50
     df_grid, df_grid_pt, df = dfs
     DF, DF_GRID_PT, DF_GRID = tests.make_any_combination(df, df_grid_pt,
                                                          df_grid,
                                                          cell_configs,
                                                          upper_lower='lower',
                                                          remake_cls_4=False)
-    df_excess_pt, df_3_pt, df_remainder_pt = gridgran.get_excess_df(DF,
-                                                                    DF_GRID_PT,
-                                                                    DF_GRID,
-                                                                    "ID500m",
-                                                                    threshold_h=25,
-                                                                    threshold_p=50,
-                                                                    num_iterations=100,
-                                                                    sample_increase_frequency=10,
-                                                                    number_to_increase_sample=1,
-                                                                    )
+    df_excess_pt, df_3_pt, df_remainder_pt = gridgran.get_excess_df(
+        DF,
+        DF_GRID_PT,
+        DF_GRID,
+        "ID500m",
+        threshold_h=25,
+        threshold_p=50,
+        num_iterations=100,
+        sample_increase_frequency=10,
+        number_to_increase_sample=1,
+        )
     if not df_remainder_pt.empty:
         assert np.all(gridgran.aggregrid(df_remainder_pt, CLASSIFICATION_DICT,
                                          level='ID500m').classification.isin(
@@ -313,6 +307,7 @@ def test_get_excess_df(dfs, cell_configs):
     assert df_excess_pt.p.sum() + df_3_pt.p.sum() + df_remainder_pt.p.sum() \
            == \
            DF_GRID_PT.p.sum()
+
 
 @pytest.mark.parametrize("cell_configs", [
     ([1, 1, 1, 3]),
@@ -340,14 +335,10 @@ def test_get_list_of_excess_cls_4_and_remainder_of_cls4(dfs, cell_configs):
     assert isinstance(excess_list, list)
     assert isinstance(rest_list, list)
     if 4 in cell_configs:
-        df_excess = pd.concat(excess_list)
         df_rest = pd.concat(rest_list)
         df_agg = gridgran.aggregrid(df_rest, CLASSIFICATION_DICT,
                                     level="ID500m")
         assert np.all(df_agg.classification == 4)
-
-
-
 
 
 @pytest.mark.parametrize("cell_configs", [
@@ -360,8 +351,6 @@ def test_get_list_of_excess_cls_4_and_remainder_of_cls4(dfs, cell_configs):
     ([1, 1, 3, 4])
 ])
 def test_check_cls_3_can_become_cls_4_PASS(dfs, cell_configs):
-    threshold_h = 25
-    threshold_p = 50
     df_grid, df_grid_pt, df = dfs
     DF, DF_GRID_PT, DF_GRID = tests.make_any_combination(df, df_grid_pt,
                                                          df_grid,
@@ -387,8 +376,6 @@ def test_check_cls_3_can_become_cls_4_PASS(dfs, cell_configs):
     ([1, 1, 3, 4])
 ])
 def test_check_cls_3_can_become_cls_4_FAIL(dfs, cell_configs):
-    threshold_h = 25
-    threshold_p = 50
     df_grid, df_grid_pt, df = dfs
     DF, DF_GRID_PT, DF_GRID = tests.make_any_combination(df, df_grid_pt,
                                                          df_grid,
@@ -403,6 +390,7 @@ def test_check_cls_3_can_become_cls_4_FAIL(dfs, cell_configs):
     assert df_3.empty
     assert df_excess.empty
     assert df_the_rest.empty
+
 
 @pytest.mark.parametrize("cell_configs", [
     ([1, 1, 1, 3]),
@@ -437,10 +425,11 @@ def test_make_cls_3_to_cls_4_PASS(dfs, cell_configs):
                                     level='ID500m')
         assert list(df_agg.classification.unique()) == [0, 4]
         assert df_grid_pt_moved.p.sum() == DF_GRID_PT.p.sum()
-    #This exception will be tested in another test. Some cell configs will
+    # This exception will be tested in another test. Some cell configs will
     # fail randomly due to insufficient points being available
-    except gridgran.DataFrameNotOverDisclosureLimitException as e:
+    except gridgran.DataFrameNotOverDisclosureLimitException:
         assert True
+
 
 @pytest.mark.parametrize("cell_configs", [
     ([1, 1, 1, 3]),
@@ -463,7 +452,7 @@ def test_make_cls_3_to_cls_4_FAIL(dfs, cell_configs):
                                               DF_GRID_PT,
                                               DF_GRID,
                                               "ID500m"
-                                           )
+                                              )
     # Set up dataframes for failure
     df_3_pt.p.values[:] = 0
     df_3_pt.p.values[:] = 0
@@ -472,8 +461,7 @@ def test_make_cls_3_to_cls_4_FAIL(dfs, cell_configs):
     df_remainder_pt.p.values[:] = 0
     df_remainder_pt.p.values[:] = 0
 
-    with pytest.raises(gridgran.DataFrameNotOverDisclosureLimitException) as\
-            exec:
+    with pytest.raises(gridgran.DataFrameNotOverDisclosureLimitException):
         df_grid_moved, df_grid_pt_moved = gridgran.make_cls_3_to_cls_4(
             df_3_pt,
             df_excess_pt,
@@ -481,4 +469,3 @@ def test_make_cls_3_to_cls_4_FAIL(dfs, cell_configs):
             "ID500m",
             CLASSIFICATION_DICT,
         )
-
