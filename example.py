@@ -5,7 +5,7 @@ import gridgran
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR.joinpath('tests/data')
 GPKG = DATA_DIR.joinpath('GRIDS.gpkg')
-BFC = DATA_DIR.joinpath('BFC_clip.shp')
+BFC = DATA_DIR.joinpath('waterline/BFC.shp')
 
 classification_dict = {
         'p_1': 10,
@@ -37,4 +37,8 @@ def main():
 
 
 if __name__ == "__main__":
+    import datetime
+    start = datetime.datetime.now()
     main()
+    end = datetime.datetime.now()
+    print(f'It took {end - start} seconds')

@@ -16,7 +16,8 @@ import numpy as np
 import pandas as pd
 
 
-def remove_water_cells(gdf_125m, gdf_bfc, return_water=False):
+def remove_water_cells(gdf_125m, gdf_bfc, return_water=False,
+                       index_col='GridID125m'):
     """ Returns gdf_125m with cells not intersecting gdf_bfc removed
 
     Parameters:
@@ -32,27 +33,26 @@ def remove_water_cells(gdf_125m, gdf_bfc, return_water=False):
         If False (Default), land grids will be returned, else water mask
         will be returned
 
+    index_col : str
+        Column in gdf_125m to use for IDS - (DEFAULT GridID125m)
+
     Returns:
     -------
     gdf_125m_land : gpd.GeoDataFrame
         GeoDataFrame of 125m cells with 100% water cells removed
     """
-    # gdf_125_int = gdf_125m.sjoin(gdf_bfc,
-    #                              how='left',
-    #                              predicate='intersects').dropna()
-
     gdf_125_int = gpd.sjoin(gdf_125m, gdf_bfc,
                             how='left',
                             predicate='intersects').dropna()
     if return_water:
         gdf_125m_clip = gdf_125m[
-            ~gdf_125m.GridID125m.isin(gdf_125_int.GridID125m)]
+            ~gdf_125m[index_col].isin(gdf_125_int[index_col])]
         gdf_125m_clip = gdf_125m_clip.assign(diss_water=1)
         gdf_125m_clip = gdf_125m_clip.dissolve(by="diss_water")
         gdf_125m_clip = gdf_125m_clip[['geometry']]
     else:
         gdf_125m_clip = gdf_125m[
-            gdf_125m.GridID125m.isin(gdf_125_int.GridID125m)]
+            gdf_125m.GridID125m.isin(gdf_125_int[index_col])]
 
     return gdf_125m_clip
 
