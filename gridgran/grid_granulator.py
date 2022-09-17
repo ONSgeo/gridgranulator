@@ -81,6 +81,19 @@ class GridGranulatorGPKG:
         self.grid_1km, self.grid_125m, self.points = \
             self.get_points_and_1km_and_125m()
         self.iterate_and_process()
+        if self.path_to_waterline:
+            water_gdf = gpd.read_file(self.path_to_waterline)
+            grid_125m_water = gridgran.remove_water_cells(
+                self.grid_125m,
+                water_gdf,
+                return_water=True
+            )
+            grid_125m_water.to_file(
+                self.out_path,
+                layer='water_mask',
+                driver='GPKG'
+            )
+
 
     def get_points_and_1km_and_125m(self):
         """Returns geodataframes for grids and points"""
