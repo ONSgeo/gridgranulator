@@ -42,7 +42,7 @@ def remove_water_cells(gdf_125m, gdf_bfc, return_water=False,
         GeoDataFrame of 125m cells with 100% water cells removed
     """
     gdf_125_int = gpd.sjoin(gdf_125m, gdf_bfc,
-                            how='left',
+                            how='inner',
                             predicate='intersects').dropna()
     if return_water:
         gdf_125m_clip = gdf_125m[

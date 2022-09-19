@@ -58,11 +58,14 @@ def test_looping_through_levels(dfs):
                                                 id], CLASSIFICATION_DICT,
                                  level="ID250m")
         df_grid_ = df_grid[df_grid.ID250m.isin(df_.ID250m.to_list())]
-        df_grid_250, df_grid_pt_250 = gridgran.check_cells(df_, df_grid_,
-                                                           df_grid_pt,
-                                                           "ID250m", "ID500m",
-                                                           "ID125m",
-                                                           CLASSIFICATION_DICT, )
+        df_grid_250, df_grid_pt_250 = gridgran.check_cells(
+            df_,
+            df_grid_,
+            df_grid_pt,
+            "ID250m",
+            "ID500m",
+            "ID125m",
+            CLASSIFICATION_DICT, )
         df_agg_250 = gridgran.aggregrid(df_grid_pt_250, CLASSIFICATION_DICT,
                                         level="ID250m")
         assert len(df_agg_250) == 16
