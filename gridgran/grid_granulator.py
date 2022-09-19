@@ -82,7 +82,6 @@ class GridGranulatorGPKG:
             self.get_points_and_1km_and_125m()
         self.iterate_and_process()
 
-
     def get_points_and_1km_and_125m(self):
         """Returns geodataframes for grids and points"""
         grid_1km = gpd.read_file(self.gpkg_path,

@@ -17,12 +17,13 @@ classification_dict = {
         }
 
 CLASSIFICATION_SETTINGS = {
-    "classification_dict" : classification_dict,
+    "classification_dict": classification_dict,
     "cls_2_threshold_1000m": False,
     "cls_2_threshold_500m": False,
     "cls_2_threshold_250m": False,
     "cls_2_threshold_125m": False,
 }
+
 
 def main():
     gridgran.GridGranulatorGPKG(GPKG,
