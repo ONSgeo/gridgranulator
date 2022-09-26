@@ -35,6 +35,21 @@ def grid_final():
     grid_final = gpd.read_file(gpkg, layer='test_grid_processed')
     yield grid_final
 
+def test_clip_water():
+    gdf_extent = grid_125m.iloc[0:2]
+    gdf_extent.to_file(BASE.joinpath('waterline/test_extent.gpkg'),
+                       layer='test', driver='GPKG', index=False)
+    out_clip = BASE.joinpath('waterline/test_clip.shp')
+    gridgran.clip_water(
+        BASE.joinpath('waterline/BFC.shp'),
+        out_clip,
+        BASE.joinpath('waterline/test_extent.gpkg'),
+        layer='test'
+    )
+    out_gdf = gpd.read_file(BASE.joinpath('waterline/test_extent.gpkg'))
+    assert np.all(out_gdf.total_bounds == gdf_extent.total_bounds)
+    assert out_clip.exists()
+
 
 def test_remove_water_cells():
     gdf_125_land = gridgran.remove_water_cells(cells_gdf, bfc_gdf)

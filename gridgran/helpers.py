@@ -15,6 +15,32 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
+def clip_water(path_to_water, outpath, gpkg, layer=None):
+    """Clips path_to_water to extend of layer in gpkg and saves to outpath
+
+    Parameters:
+    -----------
+    path_to_water : Path/str
+        Path to global water shapefile
+
+    outpath : Path/str
+        Path to output shapefile
+
+    gpkg : Path/str
+        Path to geopackage containing cells that need to be used as extent
+
+    layer : str
+        Layer in geopackage to use as clip extent
+    """
+    gdf_water = gpd.read_file(path_to_water)
+    if layer:
+        gdf_extent = gpd.read_file(gpkg, layer=layer)
+    else:
+        gdf_extent = gpd.read_file(gpkg) #shapfile
+    gdf_clip = gpd.clip(gdf_water, gdf_extent)
+    gdf_clip.to_file(outpath, index=False)
+
+
 
 def remove_water_cells(gdf_125m, gdf_bfc, return_water=False,
                        index_col='GridID125m'):
