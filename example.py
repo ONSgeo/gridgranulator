@@ -1,3 +1,5 @@
+"""Example using test data"""
+
 from pathlib import Path
 
 import gridgran

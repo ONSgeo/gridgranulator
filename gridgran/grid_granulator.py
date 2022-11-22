@@ -103,6 +103,8 @@ class GridGranulatorGPKG:
                 self.points,
                 self.classification_dict,
                 self.class_2_threshold_prp)
+        total_rows = len(self.grid_1km)
+        print(f'{total_rows} remaining')
         for row in self.grid_1km.itertuples():
             cell_125 = self.grid_125m[
                 self.grid_125m.GridID125m.str.startswith(row.GridID1km[:-3])]
@@ -130,6 +132,9 @@ class GridGranulatorGPKG:
                 grid_diss = self.join_and_dissolve(grid_final, cell_125)
                 GLOBAL_GRID_LIST.append(grid_diss)
                 GLOBAL_POINT_LIST.append(point_final)
+            total_rows -= 1
+            if total_rows % 50 == 0:
+                print(f'{total_rows} remaining')
 
         self.concat_and_save(GLOBAL_GRID_LIST,
                              GLOBAL_POINT_LIST,
@@ -166,7 +171,8 @@ class GridGranulatorGPKG:
                                                           grid_125m)
         point_final_removed = gridgran.make_point_df_removing_grids(
             point_final)
-        point_final_removed.to_csv(out_csv.parent.joinpath('removed.csv'),
+        point_final_removed.to_csv(out_csv.parent.joinpath(
+            'points_without_empty_grids.csv'),
                                    index=False)
         point_final.to_csv(out_csv, index=False)
         # Need to choose the correct method to replace values
@@ -176,6 +182,7 @@ class GridGranulatorGPKG:
             self.classification_dict['h_3'],
             replace_with=self.fill_values_below_threshold_with)
         grid_final.rename(columns={"dissolve_id": "GridID"}, inplace=True)
+        grid_final['pop_density'] = grid_final.p / grid_final.geometry.area
         grid_final.to_file(out_file, layer=out_layer, driver='GPKG',
                            index=False)
         grid_to_clip = self.grid_125m[~self.grid_125m.GridID125m.isin(
