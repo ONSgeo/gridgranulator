@@ -3,7 +3,6 @@ from pathlib import Path
 
 import geopandas as gpd
 import pytest
-from pathlib import Path
 import fiona
 
 import gridgran
@@ -18,7 +17,7 @@ GRIDS_125m = Path(r'R:\HeatherPorter\CensusGrids\Nested '
                   r'Grids\NestedGridData\UKGrids\UKGrid_125m.gpkg').resolve()
 
 
-@pytest.mark.parametrize('la_ids',[
+@pytest.mark.parametrize('la_ids', [
     (['E06000030', 'E06000036', 'E06000037']),
     (['E07000092', 'E07000093', 'E07000094', 'E07000179', 'E07000180',
       'E07000209', 'E07000214']),
@@ -34,6 +33,7 @@ def test_get_la_geoms(la_ids):
     assert sorted(gdf[la_col].tolist()) == sorted(la_ids)
     assert list(gdf.columns) == [la_col, 'geometry']
 
+
 @pytest.mark.parametrize('la_ids', [
     (['Windsor and Maidenhead', 'Horsham', 'Reading']),
     (['Swindon'])
@@ -48,6 +48,7 @@ def test_get_la_geoms_using_la_names(la_ids):
     assert sorted(gdf[la_col].tolist()) == sorted(la_ids)
     assert list(gdf.columns) == [la_col, 'geometry']
 
+
 @pytest.mark.parametrize('la_ids, expect_no_pts', [
     (['E06000059'], 1594),
     (['E06000030', 'E06000037', 'E06000054', 'E07000180'], 3944),
@@ -60,20 +61,24 @@ def test_get_points(la_ids, expect_no_pts):
     assert isinstance(pts, gpd.GeoDataFrame)
     assert len(pts) == expect_no_pts
 
-@pytest.mark.skip(reason='Needs to read large data from network - SLOW')
-def test_get_grids():
-    gdf = gridgran.get_la_geoms(GPKG, ['E07000217'], 'LAD21CD', layer=LA_LAYER)
-    pts = gridgran.get_points(gdf, GPKG, layer=PT_LAYER)
-    grid_1km, grid_125m = gridgran.get_grids(
-        pts,
-        GPKG,
-        GRIDS_125m,
-        layer_1km='GLOBAL_1km',
-        layer_125m=None
-    )
-    assert len(grid_125m) == len(grid_1km) * 64
-    assert isinstance(grid_125m, gpd.GeoDataFrame)
-    assert isinstance(grid_1km, gpd.GeoDataFrame)
+
+# This test is commented out because it can't be run on github (needs
+# network connection). It can be reinstated
+# @pytest.mark.skip(reason='Needs to read large data from network - SLOW')
+# def test_get_grids():
+#     gdf = gridgran.get_la_geoms(GPKG, ['E07000217'], 'LAD21CD',
+#     layer=LA_LAYER)
+#     pts = gridgran.get_points(gdf, GPKG, layer=PT_LAYER)
+#     grid_1km, grid_125m = gridgran.get_grids(
+#         pts,
+#         GPKG,
+#         GRIDS_125m,
+#         layer_1km='GLOBAL_1km',
+#         layer_125m=None
+#     )
+#     assert len(grid_125m) == len(grid_1km) * 64
+#     assert isinstance(grid_125m, gpd.GeoDataFrame)
+#     assert isinstance(grid_1km, gpd.GeoDataFrame)
 
 
 def test_make_geopackage():
@@ -95,5 +100,3 @@ def test_make_geopackage():
     assert 'points' in fiona.listlayers(GPKG)
     assert '1000m' in fiona.listlayers(GPKG)
     assert '125m' in fiona.listlayers(GPKG)
-
-
