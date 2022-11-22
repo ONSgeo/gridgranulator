@@ -182,6 +182,7 @@ class GridGranulatorGPKG:
             self.classification_dict['h_3'],
             replace_with=self.fill_values_below_threshold_with)
         grid_final.rename(columns={"dissolve_id": "GridID"}, inplace=True)
+        grid_final['pop_density'] = grid_final.p / grid_final.geometry.area
         grid_final.to_file(out_file, layer=out_layer, driver='GPKG',
                            index=False)
         grid_to_clip = self.grid_125m[~self.grid_125m.GridID125m.isin(
