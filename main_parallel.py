@@ -13,15 +13,14 @@ import gridgran
 NUM_WORKERS = os.cpu_count()
 BASE = Path(r'D:\DATA\grids_dummy_data').resolve()
 GRID_1km = BASE.joinpath('EWGRID_1km.gpkg')
-#GRID_1km = BASE.joinpath('Brighton/GRIDS_brighton.gpkg')
 GRID_125M = Path(r'R:\HeatherPorter\CensusGrids\Nested '
                  r'Grids\NestedGridData\UKGrids').joinpath('UKGrid_125m.gpkg')
 POINTS = BASE.joinpath('DUMMY_POINTS_GLOBAL.gpkg')
-BFC_ALL = BASE.joinpath('BFC/CTRY_DEC_2021_GB_BFC.shp') # To make water
+BFC_ALL = BASE.joinpath('BFC/CTRY_DEC_2021_GB_BFC.shp')  # To make water
 # mask
 
-#OUTPATH = BASE.joinpath('brighton_parallel/TEST_brighton.gpkg')
-#OUTPATH_TMP = OUTPATH.parent.joinpath('tmp/TEST_brighton.gpkg')
+# OUTPATH = BASE.joinpath('brighton_parallel/TEST_brighton.gpkg')
+# OUTPATH_TMP = OUTPATH.parent.joinpath('tmp/TEST_brighton.gpkg')
 
 OUTPATH = BASE.joinpath('ew_parallel/EW.gpkg')
 OUTPATH_TMP = OUTPATH.parent.joinpath('tmp/EW.gpkg')
@@ -38,14 +37,14 @@ classification_dict = {
 
 CLASSIFICATION_SETTINGS = {
     "classification_dict": classification_dict,
-    "cls_2_threshold_1000m": False, # These should remain false
-    "cls_2_threshold_500m": False, # These should remain false
-    "cls_2_threshold_250m": False, # These should remain false
-    "cls_2_threshold_125m": False, # These should remain false
+    "cls_2_threshold_1000m": False,  # These should remain false
+    "cls_2_threshold_500m": False,  # These should remain false
+    "cls_2_threshold_250m": False,  # These should remain false
+    "cls_2_threshold_125m": False,  # These should remain false
 }
 
-
 touching_points_list = []
+
 
 def main_process_serial(layer=None):
     m = multiprocessing.Manager()
@@ -59,11 +58,12 @@ def main_process_serial(layer=None):
         process(grid_cell, l_pt, l_125)
     print(touching_points_list)
 
+
 def main_process_parallel(layer=None):
     m = multiprocessing.Manager()
     l_pt = m.Lock()
     l_125 = m.Lock()
-    l_water = m.Lock() #lock to read water mask file
+    l_water = m.Lock()  # lock to read water mask file
     if layer:
         gdf_1km = gpd.read_file(GRID_1km, layer=layer)
     else:
@@ -101,9 +101,11 @@ def main_process_parallel(layer=None):
             except Exception as e:
                 print(processed_grid, e)
     grid_final = gpd.GeoDataFrame(pd.concat(GRIDS)).set_crs(27700)
-    grid_final.to_file(OUTPATH, layer='grids',
-                       driver='GPKG',
-                      index=False)
+    grid_final.to_file(
+        OUTPATH,
+        layer='grids',
+        driver='GPKG',
+        index=False)
     df_final = pd.concat(DFS)
     df_final.to_csv(OUTPATH.parent.joinpath('grids.csv'), index=False)
     df_non_empty_final = pd.concat(DFS_NON_EMPTY)
@@ -115,19 +117,14 @@ def main_process_parallel(layer=None):
     df_water.to_file(OUTPATH, layer='watermask', index=False)
 
 
-
-
 def process(grid_cell, l_pt, l_125, l_water, gdf_water_all):
     outlayer = grid_cell.GridID1km
     bbox = grid_cell.geometry.bounds
-    #l_pt.acquire()
     points = gpd.read_file(POINTS, bbox=bbox)
-    #l_pt.release()
     if not points.empty:
-        #l_125.acquire()
         gdf_125 = gpd.read_file(GRID_125M, bbox=bbox)
-        #l_125.release()
-        gdf_125 = gdf_125[gdf_125.GridID125m.str[:-3] + '000' == grid_cell.GridID1km]
+        gdf_125 = gdf_125[
+            gdf_125.GridID125m.str[:-3] + '000' == grid_cell.GridID1km]
         touching_points = points[points.geometry.touches(grid_cell.geometry)]
         if not touching_points.empty:
             for pt in touching_points.uprn.tolist():
@@ -135,10 +132,7 @@ def process(grid_cell, l_pt, l_125, l_water, gdf_water_all):
                     points = points[points.uprn != pt]
                 else:
                     touching_points_list.append(pt)
-        #l_water.acquire()
-        #water_gdf = gpd.read_file(BFC_ALL, bbox=bbox)
         water_gdf = gpd.clip(gdf_water_all, gdf_125)
-        #l_water.release()
         x = gridgran.GridGranulatorSingleCell(
             grid_cell,
             gdf_125,
@@ -156,12 +150,14 @@ def process(grid_cell, l_pt, l_125, l_water, gdf_water_all):
         return grid, water, df, df_non_empty
     return None, None, None, None
 
+
 def make_final_csv(csv_list, outname, delete_files=False):
     df_list = [pd.read_csv(x) for x in csv_list]
     df_final = pd.concat(df_list)
     df_final.to_csv(outname, index=False)
     if delete_files:
         [x.unlink() for x in csv_list]
+
 
 def concatenate_gpkg_layers(gpkg_tmp, out_gpkg, delete_tmp=False):
     # https://gis.stackexchange.com/questions/300630/how-to-use-merge-vector-layers-in-qgis-using-geopackages-as-output-with-fids-d
@@ -186,15 +182,16 @@ def concatenate_gpkg_layers(gpkg_tmp, out_gpkg, delete_tmp=False):
 
 
 if __name__ == "__main__":
-    #main_process_serial(layer='1000m')
+    # main_process_serial(layer='1000m')
     start = datetime.now()
     if not OUTPATH_TMP.parent.exists():
         OUTPATH_TMP.parent.mkdir(parents=True)
-    #main_process_parallel(layer='1000m')
+    # main_process_parallel(layer='1000m')
     main_process_parallel(layer='1km2')
     # GRIDS_CSVS = [x for x in OUTPATH_TMP.parent.iterdir() if x.name.endswith(
     #     '0_grids.csv')]
-    # POINTS_CSVS = [x for x in OUTPATH_TMP.parent.iterdir() if x.name.endswith(
+    # POINTS_CSVS = [x for x in OUTPATH_TMP.parent.iterdir() if
+    # x.name.endswith(
     #     'empty_grids.csv')]
     # make_final_csv(GRIDS_CSVS, OUTPATH.parent.joinpath('EW.csv'),
     #                delete_files=True)
@@ -207,6 +204,3 @@ if __name__ == "__main__":
     print('DISSOLVE WATER')
     finish = datetime.now()
     print(f'parallel {finish - start} seconds')
-    # print(r"https://stackoverflow.com/questions/6832554/multiprocessing-how\
-    #                -do-i-share-a-dict-among-multiple-processes")
-    # print(r"https://www.google.com/search?q=python+concurrent.futures+write+to+dict+from+multiple+processes&rlz=1C1GCEB_enGB1000GB1000&sxsrf=ALiCzsbs9sz168hf-WQ8mrK4RAXFD1buyQ%3A1666021331034&ei=03dNY-rUAYSQgQa4vaHACw&ved=0ahUKEwiqiv-Mzef6AhUESMAKHbheCLgQ4dUDCA4&uact=5&oq=python+concurrent.futures+write+to+dict+from+multiple+processes&gs_lcp=Cgdnd3Mtd2l6EAM6BggAEBYQHjoFCAAQhgM6BggAEB4QDToICAAQCBAeEA06BQghEKABOggIIRAWEB4QHToHCCEQoAEQCjoECCEQFToECCEQCkoECE0YAUoECEEYAEoECEYYAFAAWMc6YPE7aABwAXgAgAHnAYgByyCSAQcyNC4xMC4zmAEAoAEBwAEB&sclient=gws-wiz")

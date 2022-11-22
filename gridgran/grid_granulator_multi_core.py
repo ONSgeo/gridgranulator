@@ -1,12 +1,15 @@
-"""Module with class to process grids within 1km GRID cell at a time for use when using multiprocessing over large areas """
+"""Module with class to process grids within 1km GRID cell at a time for use
+when using multiprocessing over large areas """
 
 import geopandas as gpd
 import pandas as pd
 
 import gridgran
 
+
 class GridGranulatorSingleCell:
     """Takes inputs for single 1km cell and saves layer to geopacakage"""
+
     def __init__(
             self,
             gdf_1km,
@@ -60,7 +63,8 @@ class GridGranulatorSingleCell:
             Options ['minimum', 'star', 'null'] -
             In the output grid, cells that finish below the minimum threshold
             will need to be filled with a dummy value so as no to identify
-            individuals. The options are 'minimum' (the minimum threshold value),
+            individuals. The options are 'minimum' (the minimum threshold
+            value),
             'star' (asterisk '*') or 'null'/NA. (Default='minimum')
         """
         self.gdf_1km = gdf_1km
@@ -74,7 +78,8 @@ class GridGranulatorSingleCell:
         self.classification_dict = self.classification_settings[
             'classification_dict']
         self.class_2_threshold_prp = class_2_threshold_prp
-        self.fill_values_below_threshold_with = fill_values_below_threshold_with
+        self.fill_values_below_threshold_with = \
+            fill_values_below_threshold_with
 
     def iterate_and_process(self):
         """Process children of 1km cell
@@ -94,7 +99,7 @@ class GridGranulatorSingleCell:
                 self.gdf_pts,
                 self.classification_dict,
                 self.class_2_threshold_prp)
-        #for row in self.gdf_1km.itertuples():
+        # for row in self.gdf_1km.itertuples():
         row = self.gdf_1km
         cell_125 = self.gdf_125m[
             self.gdf_125m.GridID125m.str.startswith(row.GridID1km[:-3])]
@@ -124,14 +129,13 @@ class GridGranulatorSingleCell:
             GLOBAL_POINT_LIST.append(point_final)
 
         grid, water, df, df_non_empty = self.concat_and_save(GLOBAL_GRID_LIST,
-                             GLOBAL_POINT_LIST,
-                             self.outpath,
-                             self.outlayer,
-                             self.outcsv,
-                             self.gdf_pts,
-                             self.gdf_125m)
+                                                             GLOBAL_POINT_LIST,
+                                                             self.outpath,
+                                                             self.outlayer,
+                                                             self.outcsv,
+                                                             self.gdf_pts,
+                                                             self.gdf_125m)
         return grid, water, df, df_non_empty
-
 
     def join_and_dissolve(self, grid_final, cell_125):
         """Dissolve grids based on dissolve id"""
@@ -191,5 +195,3 @@ class GridGranulatorSingleCell:
         #         driver='GPKG'
         #     )
         return grid_final, grid_125m_water, point_final, point_final_removed
-
-

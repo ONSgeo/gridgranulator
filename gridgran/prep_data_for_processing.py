@@ -50,6 +50,7 @@ def get_la_geoms(la_path, la_ids, la_col, layer=None):
     gdf = gdf[[la_col, 'geometry']]
     return gdf
 
+
 def get_points(gdf, pt_path, layer=None):
     """Get points within LA - This will use intersect so be careful not to
     duplicate points on neigbouring LAs that touch borders"""
@@ -63,6 +64,7 @@ def get_points(gdf, pt_path, layer=None):
     pts = pts_bbox.sjoin(gdf_diss, how='left', predicate='intersects').dropna()
     pts = pts[[x for x in pts_bbox.columns]]
     return pts
+
 
 def get_grids(pts, path_1km, path_125m, layer_1km=None, layer_125m=None):
     """Extracts grids from path_1km (layer_1km) and path_125 (layer_125) to
@@ -92,7 +94,6 @@ def get_grids(pts, path_1km, path_125m, layer_1km=None, layer_125m=None):
     grid_125m : gpd.GeoDataFrame
         125m grid
     """
-    bbox = list(pts.total_bounds)
     grid_1km = gpd.read_file(path_1km, layer=layer_1km, mask=pts)
     grid_125m = gpd.read_file(path_125m, layer=layer_125m, mask=grid_1km)
     grid_125m['ID1km'] = grid_125m['GridID125m'].str[:-3] + '000'
@@ -102,19 +103,19 @@ def get_grids(pts, path_1km, path_125m, layer_1km=None, layer_125m=None):
 
 
 def make_points_geopackage(la_path,
-                    la_ids,
-                    la_col,
-                    pt_path,
-                    out_path,
-                    path_1km,
-                    path_125m,
-                    out_layer=None,
-                    uprn_col=None,
-                    la_layer=None,
-                    pt_layer=None,
-                    pt_pop_col='people',
-                    layer_1km=None,
-                    layer_125m=None):
+                           la_ids,
+                           la_col,
+                           pt_path,
+                           out_path,
+                           path_1km,
+                           path_125m,
+                           out_layer=None,
+                           uprn_col=None,
+                           la_layer=None,
+                           pt_layer=None,
+                           pt_pop_col='people',
+                           layer_1km=None,
+                           layer_125m=None):
     """Function to call all utility helpers to prepare data and save to
     geopackage ready for processing
 
@@ -183,5 +184,3 @@ def make_points_geopackage(la_path,
     )
     grid_1km.to_file(out_path, layer='1000m', index=False, driver='GPKG')
     grid_125m.to_file(out_path, layer='125m', index=False, driver='GPKG')
-
-

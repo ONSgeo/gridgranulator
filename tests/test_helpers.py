@@ -35,6 +35,7 @@ def grid_final():
     grid_final = gpd.read_file(gpkg, layer='test_grid_processed')
     yield grid_final
 
+
 def test_clip_water():
     gdf_extent = grid_125m.iloc[0:2]
     gdf_extent.to_file(BASE.joinpath('waterline/test_extent.gpkg'),
