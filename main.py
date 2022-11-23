@@ -15,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent
 # DATA_DIR = Path(r'D:\DATA\grids_dummy_data').resolve()
 DATA_DIR = Path(r'Q:\Census_grids_data_DO_NOT_DELETE').resolve()
 BFC_ALL = DATA_DIR.joinpath('BFC/CTRY_DEC_2021_GB_BFC.shp')  # FOR WATER MASK
-OA_SHP = DATA_DIR.parent.joinpath(
+OA_SHP = DATA_DIR.joinpath(
     'OA_2021/Output_Areas_(December_2021)_Boundaries_Full_Clipped_EW_('
     'BFC)/OA_2021_EW_BFC_V7.shp')
 
@@ -30,6 +30,11 @@ GLOBAL_GRID_1km = DATA_DIR.joinpath("EWGRID_1km.gpkg")
 GLOBAL_GRID_125m = Path(r'R:\HeatherPorter\CensusGrids\Nested '
                         r'Grids\NestedGridData\UKGrids\UKGrid_125m.gpkg'
                         ).resolve()
+
+########################## SET OUT DIRECTORY ################################
+OUT_DIR = BASE_DIR.parent.joinpath('GRIDS')  # THIS SHOULD BE SET AS
+# APPROPRIATE
+########################## SET OUT DIRECTORY ################################
 
 classification_dict = {
     'p_1': 10,
@@ -49,7 +54,10 @@ CLASSIFICATION_SETTINGS = {
 }
 
 
-def main(GPKG, la_ids, la_col):
+def main(GPKG, la_ids, la_col, include_oas=False):
+    #If include_oas is False, the oa layer will not be included in the
+    # output. This is just for purposes of comparison, but slows down the
+    # script if data is on the network
     BFC_CLIP = GPKG.parent.joinpath('BFC_clip.shp')
     if not GPKG.parent.exists():
         GPKG.parent.mkdir()
@@ -70,7 +78,9 @@ def main(GPKG, la_ids, la_col):
             layer_125m=None
         )
     gridgran.clip_water(BFC_ALL, BFC_CLIP, GPKG, layer='1000m')
-    add_oas_to_gpkg(GPKG)
+    if include_oas:
+        add_oas_to_gpkg(GPKG)
+    print('MAKING GRIDS')
     gridgran.GridGranulatorGPKG(GPKG,
                                 GPKG,
                                 GPKG.parent.name,
@@ -89,9 +99,7 @@ def add_oas_to_gpkg(GPKG):
     bbox = tuple(list(pt_df.total_bounds))
     oa_df = gpd.read_file(OA_SHP, bbox=bbox)
     oa_join = oa_df.sjoin(pt_df, how='inner', predicate='intersects')
-    # oa_join.drop_duplicates(subset='geometry', keep='first', inplace=True)
     oa_agg = oa_join[['OA21CD', 'people']].groupby('OA21CD').sum()
-    # oa_final = oa_df.set_index('OA21CD').join(oa_agg).fillna(0)
     oa_final = oa_df.set_index('OA21CD').join(oa_agg).dropna()
     oa_final['pop_density'] = oa_final.people / oa_final.geometry.area
     oa_final.to_file(GPKG, layer='OA', driver='GPKG')
@@ -111,11 +119,11 @@ if __name__ == "__main__":
         print(f'starting {la}')
         print(la)
         print(la_ids)
-        GPKG = DATA_DIR.joinpath(f'{la}/{la}.gpkg')  # Save to here
+        GPKG = OUT_DIR.joinpath(f'{la}/{la}.gpkg')  # Save to here
         if not GPKG.parent.exists():
-            GPKG.parent.mkdir()
+            GPKG.parent.mkdir(parents=True, exist_ok=True)
         try:
-            main(GPKG, la_ids, la_col)
+            main(GPKG, la_ids, la_col, include_oas=False)
         except Exception as e:
             print(f'Could not do {la} because of {e}')
         finish = datetime.now()  # timing script
