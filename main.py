@@ -1,7 +1,10 @@
 """Main function to prepare points from a global dataset at extent of local
 authority and process at this extent. Although this will work for multuple
 LAs, it may run out of memory for very large areas, and in these cases Local
-Authorities should be run separately."""
+Authorities should be run separately.
+
+NOTE - THIS SCRIPT IS POINTING TO DATA IN THE PSMA DRIVE WHICH IS CONFIGURED AS 'Q' IN THIS SCRIPT. THIS MAY NEED TO BE CHANGED (DATA_DIR) IN THE USER'S CONFIGURATION
+"""
 from pathlib import Path
 
 import geopandas as gpd
@@ -9,7 +12,8 @@ import geopandas as gpd
 import gridgran
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = Path(r'D:\DATA\grids_dummy_data').resolve()
+# DATA_DIR = Path(r'D:\DATA\grids_dummy_data').resolve()
+DATA_DIR = Path(r'Q:\Census_grids_data_DO_NOT_DELETE').resolve()
 BFC_ALL = DATA_DIR.joinpath('BFC/CTRY_DEC_2021_GB_BFC.shp')  # FOR WATER MASK
 OA_SHP = DATA_DIR.parent.joinpath(
     'OA_2021/Output_Areas_(December_2021)_Boundaries_Full_Clipped_EW_('
@@ -100,7 +104,7 @@ if __name__ == "__main__":
     LA_IDS = {
         # 'Musa': ['North Northamptonshire'],
         # 'David': ['Wiltshire', 'Bath and North East Somerset']
-        'Bradford_on_Avon': ['Wiltshire']
+        'Soton__': ['Southampton']
     }
     la_col = 'LAD21NM'  # Could also use LAD21CD
     for la, la_ids in LA_IDS.items():
