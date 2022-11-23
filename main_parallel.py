@@ -1,3 +1,6 @@
+"""THIS SCRIPT IS TO RUN CODE ON LARGE EXTENTS USING MULTIPLE CPUS. ALTHOUGH IT WORKS, IT SEEMS LIKE IT COULD BE MADE MORE EFFICIIENT AS IT SEEMS A LITTLE SLOW"""
+
+
 from pathlib import Path
 import geopandas as gpd
 import fiona
@@ -11,7 +14,8 @@ from datetime import datetime
 import gridgran
 
 NUM_WORKERS = os.cpu_count()
-BASE = Path(r'D:\DATA\grids_dummy_data').resolve()
+# BASE = Path(r'D:\DATA\grids_dummy_data').resolve()
+BASE = Path(r'Q:\Census_grids_data_DO_NOT_DELETE').resolve()
 GRID_1km = BASE.joinpath('EWGRID_1km.gpkg')
 GRID_125M = Path(r'R:\HeatherPorter\CensusGrids\Nested '
                  r'Grids\NestedGridData\UKGrids').joinpath('UKGrid_125m.gpkg')

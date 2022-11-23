@@ -13,8 +13,8 @@ LA_LAYER = 'LAs'
 PT_LAYER = 'POINTS_GLOBAL'
 
 # This path should be relative from the user's computer
-GRIDS_125m = Path(r'R:\HeatherPorter\CensusGrids\Nested '
-                  r'Grids\NestedGridData\UKGrids\UKGrid_125m.gpkg').resolve()
+#GRIDS_125m = Path(r'R:\HeatherPorter\CensusGrids\Nested '
+#                  r'Grids\NestedGridData\UKGrids\UKGrid_125m.gpkg').resolve()
 
 
 @pytest.mark.parametrize('la_ids', [
@@ -64,41 +64,41 @@ def test_get_points(la_ids, expect_no_pts):
 
 # This test is commented out because it can't be run on github (needs
 # network connection). It can be reinstated
-# @pytest.mark.skip(reason='Needs to read large data from network - SLOW')
-# def test_get_grids():
-#     gdf = gridgran.get_la_geoms(GPKG, ['E07000217'], 'LAD21CD',
-#     layer=LA_LAYER)
-#     pts = gridgran.get_points(gdf, GPKG, layer=PT_LAYER)
-#     grid_1km, grid_125m = gridgran.get_grids(
-#         pts,
-#         GPKG,
-#         GRIDS_125m,
-#         layer_1km='GLOBAL_1km',
-#         layer_125m=None
-#     )
-#     assert len(grid_125m) == len(grid_1km) * 64
-#     assert isinstance(grid_125m, gpd.GeoDataFrame)
-#     assert isinstance(grid_1km, gpd.GeoDataFrame)
+#@pytest.mark.skip(reason='Needs to read large data from network - SLOW')
+def test_get_grids():
+    gdf = gridgran.get_la_geoms(GPKG, ['E07000217'], 'LAD21CD',
+    layer=LA_LAYER)
+    pts = gridgran.get_points(gdf, GPKG, layer=PT_LAYER)
+    grid_1km, grid_125m = gridgran.get_grids(
+        pts,
+        GPKG,
+        GPKG,
+        layer_1km='GLOBAL_1km',
+        layer_125m='125m'
+    )
+    assert len(grid_125m) == len(grid_1km) * 64
+    assert isinstance(grid_125m, gpd.GeoDataFrame)
+    assert isinstance(grid_1km, gpd.GeoDataFrame)
 
 # This test is commented out because it can't be run on github (needs
 # network connection). It can be reinstated but check the path to GRIDS_125m
 # relative to the tester's computer
-# def test_make_geopackage():
-#     gridgran.make_points_geopackage(
-#         GPKG,
-#         ['Woking'],
-#         'LAD21NM',
-#         GPKG,
-#         GPKG,
-#         GPKG,
-#         GRIDS_125m,
-#         out_layer='points',
-#         la_layer=LA_LAYER,
-#         pt_layer=PT_LAYER,
-#         pt_pop_col='people',
-#         layer_1km='GLOBAL_1km',
-#         layer_125m=None
-#     )
-#     assert 'points' in fiona.listlayers(GPKG)
-#     assert '1000m' in fiona.listlayers(GPKG)
-#     assert '125m' in fiona.listlayers(GPKG)
+def test_make_geopackage():
+    gridgran.make_points_geopackage(
+        GPKG,
+        ['Woking'],
+        'LAD21NM',
+        GPKG,
+        GPKG,
+        GPKG,
+        GPKG,
+        out_layer='points',
+        la_layer=LA_LAYER,
+        pt_layer=PT_LAYER,
+        pt_pop_col='people',
+        layer_1km='GLOBAL_1km',
+        layer_125m='125m'
+    )
+    assert 'points' in fiona.listlayers(GPKG)
+    assert '1000m' in fiona.listlayers(GPKG)
+    assert '125m' in fiona.listlayers(GPKG)
