@@ -128,16 +128,15 @@ example) to use as water mask. Please not that this will make the inverse of
  rules will be adjusted to show this value (either p_3 + 1 and h_3 + 1, an
  asterisk or 'null').
 
-** NOTE - 1km cells that are adjusted using fill_values_below_threshold_with
+**NOTE - 1km cells that are adjusted using fill_values_below_threshold_with
  will result in table sums being different to those of the original data.
  Each row in the output table should be adjusted again following processing
- if you would like the sums to match the original point values.
-  **
+ if you would like the sums to match the original point values.**
 
- ** NOTE -  SHOULD USERS WISH TO MAKE POINT DATA NON-DISCLOSIVE ONLY GRIDS
+ **NOTE -  SHOULD USERS WISH TO MAKE POINT DATA NON-DISCLOSIVE ONLY GRIDS
  AND WATERMASKS IN THE OUTPUT GEOPACKAGES SHOULD BE SHARED. THE POINTS
  WITHIN THE GEOPACKAGES SHOULD BE DELETED AND CSV TABLES SHOULD NOT BE
- SHARED AS THESE CAN RESULT IN DISCLOSURE **
+ SHARED AS THESE CAN RESULT IN DISCLOSURE**
 
 
 ## Helper Scripts
@@ -164,10 +163,10 @@ show how to run code on pre-built geopackages.
 
 
 ### TODO
-1. *** MAKE CODE THAT TAKES AN INPUT CSV OF POINTS AND RUNS THE CODE
-AUTOMATICALLY ***
+1. **MAKE CODE THAT TAKES AN INPUT CSV OF POINTS AND RUNS THE CODE
+AUTOMATICALLY**
 2. setup.py for installation
-3. Optimise main_parallel.py 
+3. Optimise main_parallel.py
 
 
 
