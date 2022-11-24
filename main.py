@@ -80,7 +80,6 @@ def main(GPKG, la_ids, la_col, include_oas=False):
     gridgran.clip_water(BFC_ALL, BFC_CLIP, GPKG, layer='1000m')
     if include_oas:
         add_oas_to_gpkg(GPKG)
-    print('MAKING GRIDS')
     gridgran.GridGranulatorGPKG(GPKG,
                                 GPKG,
                                 GPKG.parent.name,
@@ -110,9 +109,7 @@ if __name__ == "__main__":
 
     start = datetime.now()  # timing script
     LA_IDS = {
-        # 'Musa': ['North Northamptonshire'],
-        # 'David': ['Wiltshire', 'Bath and North East Somerset']
-        'Soton__': ['Southampton']
+        'Soton': ['Southampton']
     }
     la_col = 'LAD21NM'  # Could also use LAD21CD
     for la, la_ids in LA_IDS.items():

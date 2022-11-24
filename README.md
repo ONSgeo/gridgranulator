@@ -8,7 +8,7 @@ Whilst tabular and geospatial census outputs are produced at the individual leve
 There are a number of methods that can be used to increase the spatial resolution of unit-based census data using dasymetric disaggregation, but these models are a function of the input covariates, and their accuracy with respect to real values and locations decreases with an increase of resolution (i.e. the closer the resolution of the grids are to those of the census units, the higher the accuracy of the individual grid cells’ values with respect to true locations/values counted in the census, and vice versa).
 
 ### ONS Census Grids
-The Geospatial Team in Digital Growth and Operations have developed a method to aggregate disclosive point data to hierarchical grids based on their density and underlying population. The code written takes point data to be aggregated, along with rules upon which the hierarchical grids will be based, and will output a geopackage containing layers for the hierarchical grids (with fields for population and household count and population density per grid cell), corresponding Output Areas with the same fields, a high-water mask, as well as the input points, and the 1km and 125m grids corresponding to the extents of the input grids. It will also output csv tables for each point spatially joined to a grid cell (as well as empty 125m grids cells), with fields to indicate their UPRN code (if populated), the 125m grid cell ID, the grid cell’s parent IDs (250m, 500m, 1km), as well as a record of 125m cells in which the point was located at each level of aggregation (500m, 250m, 125m) and the distance that the point travelled in cases where points were required to be used. There is another csv table that shows the same data, but with the unpopulated grid cells omitted. See Output csv descriptions.
+The Geospatial Team in Digital Growth and Operations have developed a method to aggregate disclosive point data to hierarchical grids based on their density and underlying population. The code written takes point data to be aggregated, along with rules upon which the hierarchical grids will be based, and will output a geopackage containing layers for the hierarchical grids (with fields for population and household count and population density per grid cell), corresponding Output Areas with the same fields, a high-water mask, as well as the input points, and the 1km and 125m grids corresponding to the extents of the input grids. It will also output csv tables for each point spatially joined to a grid cell (as well as empty 125m grids cells), with fields to indicate their UPRN code (if populated), the 125m grid cell ID, the grid cell’s parent IDs (250m, 500m, 1km), as well as a record of 125m cells in which the point was located at each level of aggregation (500m, 250m, 125m) and the distance that the point travelled in cases where points were required to be used. There is another csv table that shows the same data, but with the unpopulated grid cells omitted.
 
 ## Gridgranulator Python Package
 
@@ -49,10 +49,125 @@ classification_dict. The classifications are actioned as follows:
  - Class 4 - Above disclosure limit - Cell can pass any points that are over
   threshold limit to neighbouring Class 3 cells. These points are selected
   randomly to prevent disclosure.
+5. If the children cells within the parent cell can all be classified as
+Class 0 or Class 4, the individual children cells can be split further until
+ disclosure rules are no longer kept, at which point the grids are dissolved
+  to their most non-disclosive level. If cells fail disclosure tests, the
+  children are dissolved to the parent level, and the code moves on to the
+  next cell in the iteration.
+6. Once all 1km cells and their children have been processed, the grids are
+dissolved to their non-disclosive level, and saved to geopackage.
 
- 
+In addition to the creation of the above grids, the package will also create
+ a water mask snapped to the 125m cells, indicating the location of water
+ with respect to the high-water mark.
 
 
-### Output CSV Tables
+### GridGranulatorGPKG Class
+The main entry into the package is through the GridGranulatorGPKG Class.
+Upon the creation of this class with the required parameters, the code will
+automate the production of the grids. The parameters are as follows:
+
+```
+Parameters:
+        -----------
+        gpkg_path : Path/str
+            Path to geopackage containing 1000m and 125m grids, as well as
+            points layer. The names of these
+            layers should be '1000m', '125m' and 'points' (if present)
+
+        out_path : Path/str
+            Path to geopackage to which output should be save (it can be the \
+             same as gpkg_path)
+
+        out_layer : str
+            Output layer within geopackage
+
+        out_csv : Path/str
+            Output csv path
+
+        classification_settings : dict
+
+        path_to_waterline : Path/str/None
+            Path to BFC highwater vector layer for UK. If this is missing,
+            coastline will not be clipped, else coastline will be clipped
+            where 125m grids intersect this level - (Default=None)
+
+        class_2_threshold : float
+            If grid cells classified as class 2 are below this proportion of \
+             the total population within neighbouring cells within parent
+             cell, they will be reclassified as class 1 - else all cells
+             will  be aggregated up. This is to stop class 2 cells causing
+             densely populated cells within parent cells being aggregated up \
+              to parent level.
+
+        fill_values_below_threshold_with : str
+        Options ['minimum', 'star', 'null'] -
+        In the output grid, cells that finish below the minimum threshold
+        will need to be filled with a dummy value so as no to identify
+        individuals. The options are 'minimum' (the minimum threshold value),
+        'star' (asterisk '*') or 'null'/NA. (Default='minimum')
+```
+
+
 
 ### Optional Parameters
+``` path_to_waterline ``` - Path to CTRY_DEC_2021_GB_BFC.shp shapefile (for
+example) to use as water mask. Please not that this will make the inverse of
+ a terrestrial vector dataset to show where water intersects the 125m grid
+ cells.
+
+ ``` class_2_threshold ``` - Proportion below which Class 2 cells'
+ population of the parents' population will be reclassified as Class 1.
+ Value should be between 0 and 1. The higher the value, the more detailed
+ (and disclosive)
+ the grids.
+
+ ``` fill_values_below_threshold_with ``` - Because tables cannot be shared
+ that show disclosive values, any 1km cells that break disclosive threshold
+ rules will be adjusted to show this value (either p_3 + 1 and h_3 + 1, an
+ asterisk or 'null').
+
+** NOTE - 1km cells that are adjusted using fill_values_below_threshold_with
+ will result in table sums being different to those of the original data.
+ Each row in the output table should be adjusted again following processing
+ if you would like the sums to match the original point values.
+  **
+
+ ** NOTE -  SHOULD USERS WISH TO MAKE POINT DATA NON-DISCLOSIVE ONLY GRIDS
+ AND WATERMASKS IN THE OUTPUT GEOPACKAGES SHOULD BE SHARED. THE POINTS
+ WITHIN THE GEOPACKAGES SHOULD BE DELETED AND CSV TABLES SHOULD NOT BE
+ SHARED AS THESE CAN RESULT IN DISCLOSURE **
+
+
+## Helper Scripts
+
+### ./main.py
+This script in the root of this repository can be used to automate the
+production of test data internally using data in the ONS PSMA drive. The
+user should specify the LA(s) they would like to process in the ``` if
+__main__ == "__main__": ``` part of the script. User's should also specify
+whether the outputs should include output areas for comparison in the output
+ geopackage (include_oas=True). This OA data is currently held internally on
+  the ONS network and runs slowly, so it might be beneficial to hold the OA
+  data locally and change the paths in this script should the user want to
+  make use of OAs. SEE OA_SHP variable at the top of the script.
+
+### ./main_parallel.py
+This script was created to run global data over large extents using multiple
+ cpus. The code works, but may take some time if the user's computer does
+ not offer enough cores OR this code needs to be made more efficient.
+
+### ./example.py
+This code is a simple example pointing to the test data in ./tests/data to
+show how to run code on pre-built geopackages.
+
+
+### TODO
+1. *** MAKE CODE THAT TAKES AN INPUT CSV OF POINTS AND RUNS THE CODE
+AUTOMATICALLY ***
+2. setup.py for installation
+3. Optimise main_parallel.py 
+
+
+
