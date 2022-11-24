@@ -16,8 +16,10 @@ The Geospatial Team in Digital Growth and Operations have developed a method to 
 Upon instantiation of an GridGranulatorGPKG object, the code will automate
 the code based on the input points, their underlying population counts, and
 the following thresholds in the classification_dict:
-`
+
+```
 p_1 -> Population class 1 - Population > 0  <= p_1
 p_2 -> Population class 2 - Population > p_1 <= p_2
 p_3 -> Population class 3 - Population > p_2 <= p_3
-`
+```
+The code will then carry out the following functionality
