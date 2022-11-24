@@ -18,8 +18,18 @@ the code based on the input points, their underlying population counts, and
 the following thresholds in the classification_dict:
 
 ```
-p_1 -> Population class 1 - Population > 0  <= p_1
-p_2 -> Population class 2 - Population > p_1 <= p_2
-p_3 -> Population class 3 - Population > p_2 <= p_3
+p_1 -> Population class 1 -   0 < Population  <= p_1
+p_2 -> Population class 2 - p_1 < Population <= p_2
+p_3 -> Population class 3 - p_2 < Population <= p_3
+h_1 -> Population class 1 -   0 < No Households (points)  <= h_1
+h_2 -> Population class 2 - p_1 < No Households (points) <= h_2
+h_3 -> Population class 3 - p_2 < No Households (points) <= h_3
 ```
-The code will then carry out the following functionality
+The code will then carry out the following functionality:
+1. Spatially join points to 125m grid on intersection;
+2. Iterate through cells in 1km grid;
+3. Subset dataframe in 1. within grid cell from 2.
+4. Iteratively split the parent cell (starting with 1km) into 4, and
+classifying the 4 children cell based on the population classes in the
+classification_dict. The classifications are actioned as follows:
+ - Class 0 - Unpopulated - 
