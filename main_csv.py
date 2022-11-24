@@ -1,17 +1,22 @@
-"""Main function to prepare points from a global dataset at extent of local
-authority and process at this extent. Although this will work for multuple
-LAs, it may run out of memory for very large areas, and in these cases Local
-Authorities should be run separately.
+"""Processing scipt that takes a csv of point with the following fields
 
-NOTE - THIS SCRIPT IS POINTING TO DATA IN THE PSMA DRIVE WHICH IS CONFIGURED AS 'Q' IN THIS SCRIPT. THIS MAY NEED TO BE CHANGED (DATA_DIR) IN THE USER'S CONFIGURATION
+UPRN, OA21CD, UPRN_POPULATION, BNG_NORTHING, BNG_EASTING
+
+The script will prepare the points to have grids processed. THE USER MUST
+ALSO INCLUDE THE LA(S) IN WHICH THE POINTS LIE FOR THIS TO WORK
+
+
+PATHS SHOULD BE CHECKED BEFORE RUNNING CODE
+
 """
+
 from pathlib import Path
-
 import geopandas as gpd
-
+import pandas as pd
 import gridgran
 
-BASE_DIR = Path(__file__).resolve().parent
+
+
 # DATA_DIR = Path(r'D:\DATA\grids_dummy_data').resolve()
 DATA_DIR = Path(r'Q:\Census_grids_data_DO_NOT_DELETE').resolve()
 BFC_ALL = DATA_DIR.joinpath('BFC/CTRY_DEC_2021_GB_BFC.shp')  # FOR WATER MASK
@@ -22,19 +27,16 @@ OA_SHP = DATA_DIR.joinpath(
 LA_SHP = DATA_DIR.joinpath('Local_Authority_Districts_('
                            'December_2021)_GB_BFC/LAD_DEC_2021_GB_BFC.shp')
 
-GLOBAL_POINTS = DATA_DIR.joinpath('DUMMY_POINTS_GLOBAL.gpkg')
-GLOBAL_POINTS_LAYER = 'part-0'
-# GLOBAL_POINTS = DATA_DIR.joinpath('BOA/BOA.gpkg')
-# GLOBAL_POINTS_LAYER = 'points'
 GLOBAL_GRID_1km = DATA_DIR.joinpath("EWGRID_1km.gpkg")
 GLOBAL_GRID_125m = Path(r'R:\HeatherPorter\CensusGrids\Nested '
                         r'Grids\NestedGridData\UKGrids\UKGrid_125m.gpkg'
                         ).resolve()
 
 ########################## SET OUT DIRECTORY ################################
-OUT_DIR = BASE_DIR.parent.joinpath('GRIDS')  # THIS SHOULD BE SET AS
+OUT_DIR = Path(r"D:\DATA\grids_dummy_data\BOA").resolve()  # THIS SHOULD BE SET AS
 # APPROPRIATE
 ########################## SET OUT DIRECTORY ################################
+
 
 classification_dict = {
     'p_1': 10,
@@ -54,6 +56,17 @@ CLASSIFICATION_SETTINGS = {
 }
 
 
+def make_points(CSV, GPKG):
+    df = pd.read_csv(CSV)
+    gdf = gpd.GeoDataFrame(
+        df,
+        geometry=gpd.points_from_xy(df.BNG_EASTING, df.BNG_NORTHING), crs=27700)
+    gdf = gdf[['UPRN', 'UPRN_POPULATION', 'geometry']]
+    gdf.rename(columns={'UPRN': 'uprn', 'UPRN_POPULATION': 'people'},
+               inplace=True)
+    gdf.to_file(GPKG, layer='points', index=False)
+
+
 def main(GPKG, la_ids, la_col, include_oas=False):
     #If include_oas is False, the oa layer will not be included in the
     # output. This is just for purposes of comparison, but slows down the
@@ -66,13 +79,13 @@ def main(GPKG, la_ids, la_col, include_oas=False):
             LA_SHP,
             la_ids,
             la_col,
-            GLOBAL_POINTS,
+            GPKG,
             GPKG,
             GLOBAL_GRID_1km,
             GLOBAL_GRID_125m,
             out_layer='points',
             la_layer=None,
-            pt_layer=GLOBAL_POINTS_LAYER,
+            pt_layer='points',
             pt_pop_col='people',
             layer_1km='1km2',
             layer_125m=None
@@ -104,24 +117,19 @@ def add_oas_to_gpkg(GPKG):
     oa_final.to_file(GPKG, layer='OA', driver='GPKG')
 
 
-if __name__ == "__main__":
-    from datetime import datetime  # Timing script
 
-    start = datetime.now()  # timing script
-    LA_IDS = {
-        'Soton': ['Southampton']
-    }
-    la_col = 'LAD21NM'  # Could also use LAD21CD
-    for la, la_ids in LA_IDS.items():
-        print(f'starting {la}')
-        print(la)
-        print(la_ids)
-        GPKG = OUT_DIR.joinpath(f'{la}/{la}.gpkg')  # Save to here
+
+
+
+if __name__ == "__main__":
+    CSV = OUT_DIR.joinpath('BOA_UPRN_OA_Population.csv')
+    GPKG = OUT_DIR.joinpath('BOA.gpkg')
+    make_points(CSV, GPKG)
+    LA_IDS = ['Wiltshire']
+    LA_COL = 'LAD21NM'
     if not GPKG.parent.exists():
         GPKG.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            main(GPKG, la_ids, la_col, include_oas=False)
-        except Exception as e:
-            print(f'Could not do {la} because of {e}')
-        finish = datetime.now()  # timing script
-        print(f'{la} took {finish - start}')  # timing script
+    try:
+        main(GPKG, LA_IDS, LA_COL, include_oas=False)
+    except Exception as e:
+        print(f'Could not do {LA_IDS} because of {e}')
