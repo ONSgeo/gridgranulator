@@ -25,6 +25,9 @@ h_1 -> Population class 1 -   0 < No Households (points)  <= h_1
 h_2 -> Population class 2 - p_1 < No Households (points) <= h_2
 h_3 -> Population class 3 - p_2 < No Households (points) <= h_3
 ```
+The non-disclosure population and household count then become p_3 + 1 and
+h_3 + 1 respectively.
+
 The code will then carry out the following functionality:
 1. Spatially join points to 125m grid on intersection;
 2. Iterate through cells in 1km grid;
@@ -32,4 +35,24 @@ The code will then carry out the following functionality:
 4. Iteratively split the parent cell (starting with 1km) into 4, and
 classifying the 4 children cell based on the population classes in the
 classification_dict. The classifications are actioned as follows:
- - Class 0 - Unpopulated - 
+ - Class 0 - Unpopulated - Grid cell is left as it is
+ - Class 1 - Move elsewhere - Points in this cell are moved to class 3 or
+ class 4 neighbours to bring them above disclosure limit
+ - Class 2 - Fail - Cell and its neighbour is dissolved up to parent level
+ IF Class 2 cell is above class_2_threshold_prp percent of total population
+ within parent cell (see Optional Parameters). If below
+ class_2_threshold_prp Class 2 cells are changed to Class 1 and passed to
+ neighbouring cells.
+ - Class 3 - Borrow from neighbours - Cell can try to bring itself above the
+  threshold if possible. If not, Class 3 cell and its neighbours are
+  dissolved up to parent level
+ - Class 4 - Above disclosure limit - Cell can pass any points that are over
+  threshold limit to neighbouring Class 3 cells. These points are selected
+  randomly to prevent disclosure.
+
+ 
+
+
+### Output CSV Tables
+
+### Optional Parameters
